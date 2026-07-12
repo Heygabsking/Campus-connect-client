@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useRef } from 'react';
-import { Send, Image, Video, Mic, Square, Trash2, Search, X, ChevronLeft } from 'lucide-react';
+import { Send, Image, Video, Mic, Square, Trash2, Search, X, ChevronLeft, Phone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api, { getMediaUrl } from '../utils/api';
 import toast from 'react-hot-toast';
@@ -266,19 +266,28 @@ export default function Messages() {
           <>
             {/* Window Header */}
             <div className="window-header">
-              <button 
-                type="button" 
-                onClick={() => setActiveChat(null)} 
-                className="chat-back-btn"
-                title="Back to inbox"
-              >
-                <ChevronLeft size={22} />
-              </button>
-              <img
-                src={getMediaUrl(getRecipientUser(activeChat)?.profilePhoto) || `https://ui-avatars.com/api/?name=${getRecipientUser(activeChat)?.username}&background=003087&color=fff`}
-                alt="" className="avatar" width={38} height={38}
-              />
-              <span className="window-username">@{getRecipientUser(activeChat)?.username}</span>
+              <div className="header-left">
+                <button 
+                  type="button" 
+                  onClick={() => setActiveChat(null)} 
+                  className="chat-back-btn"
+                  title="Back to inbox"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <img
+                  src={getMediaUrl(getRecipientUser(activeChat)?.profilePhoto) || `https://ui-avatars.com/api/?name=${getRecipientUser(activeChat)?.username}&background=003087&color=fff`}
+                  alt="" className="avatar" width={38} height={38}
+                />
+                <div className="header-user-details">
+                  <span className="window-username">@{getRecipientUser(activeChat)?.username}</span>
+                  <span className="window-status">Active now</span>
+                </div>
+              </div>
+              <div className="header-right">
+                <button className="header-icon-btn" onClick={() => toast('Voice call coming soon')}><Phone size={20} /></button>
+                <button className="header-icon-btn" onClick={() => toast('Video call coming soon')}><Video size={20} /></button>
+              </div>
             </div>
 
             {/* Messages Scroll Area */}
@@ -336,10 +345,10 @@ export default function Messages() {
               )}
 
               <form onSubmit={handleSend} className="input-form">
-                {/* File uploads */}
-                <div className="upload-options">
-                  <label className="attachment-label" title="Attach Image">
-                    <Image size={18} />
+                <div className="ig-pill-input">
+                  {/* File uploads */}
+                  <label className="ig-input-icon-btn" title="Attach Image">
+                    <Image size={20} />
                     <input 
                       type="file" 
                       accept="image/*" 
@@ -347,8 +356,8 @@ export default function Messages() {
                       style={{ display: 'none' }} 
                     />
                   </label>
-                  <label className="attachment-label" title="Attach Video">
-                    <Video size={18} />
+                  <label className="ig-input-icon-btn" title="Attach Video">
+                    <Video size={20} />
                     <input 
                       type="file" 
                       accept="video/*" 
@@ -356,47 +365,48 @@ export default function Messages() {
                       style={{ display: 'none' }} 
                     />
                   </label>
-                </div>
 
-                <textarea
-                  value={text}
-                  onChange={e => setText(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={recording ? "Recording audio note..." : "Type a message..."}
-                  disabled={recording || voiceBlob}
-                  rows={1}
-                />
-
-                {/* Voice Note controls */}
-                {!recording ? (
-                  !voiceBlob && (
+                  {/* Voice Note controls */}
+                  {!recording ? (
+                    !voiceBlob && (
+                      <button 
+                        type="button" 
+                        onClick={startRecording} 
+                        className="ig-input-icon-btn"
+                        title="Record voice note"
+                      >
+                        <Mic size={20} />
+                      </button>
+                    )
+                  ) : (
                     <button 
                       type="button" 
-                      onClick={startRecording} 
-                      className="control-btn voice-note-btn"
-                      title="Record voice note"
+                      onClick={stopRecording} 
+                      className="ig-input-icon-btn recording-mic"
+                      title="Stop recording"
                     >
-                      <Mic size={18} />
+                      <Square size={16} />
                     </button>
-                  )
-                ) : (
-                  <button 
-                    type="button" 
-                    onClick={stopRecording} 
-                    className="control-btn voice-note-btn recording"
-                    title="Stop recording"
-                  >
-                    <Square size={18} />
-                  </button>
-                )}
+                  )}
 
-                <button 
-                  type="submit" 
-                  className="btn-primary send-btn" 
-                  disabled={sendingMessage || (!text.trim() && !mediaFile && !voiceBlob)}
-                >
-                  <Send size={15} />
-                </button>
+                  <textarea
+                    value={text}
+                    onChange={e => setText(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={recording ? "Recording audio note..." : "Message..."}
+                    disabled={recording || voiceBlob}
+                    rows={1}
+                  />
+
+                  <button 
+                    type="submit" 
+                    className="ig-send-btn" 
+                    disabled={sendingMessage || (!text.trim() && !mediaFile && !voiceBlob)}
+                    title="Send message"
+                  >
+                    <Send size={14} />
+                  </button>
+                </div>
               </form>
             </div>
           </>
