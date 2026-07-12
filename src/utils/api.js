@@ -24,7 +24,10 @@ export const getMediaUrl = (path) => {
     return path;
   }
 
-  return `${API_BASE_URL}${path}`;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const cleanBase = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+
+  return `${cleanBase}${cleanPath}`;
 };
 
 export default api;
