@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useRef } from 'react';
-import { Send, Image, Video, Mic, Square, Trash2, Search, X, ChevronLeft, Phone } from 'lucide-react';
+import { Send, Image, Video, Mic, Square, Trash2, Search, X, ChevronLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api, { getMediaUrl } from '../utils/api';
 import toast from 'react-hot-toast';
@@ -283,10 +283,6 @@ export default function Messages() {
                   <span className="window-username">@{getRecipientUser(activeChat)?.username}</span>
                   <span className="window-status">Active now</span>
                 </div>
-              </div>
-              <div className="header-right">
-                <button className="header-icon-btn" onClick={() => toast('Voice call coming soon')}><Phone size={20} /></button>
-                <button className="header-icon-btn" onClick={() => toast('Video call coming soon')}><Video size={20} /></button>
               </div>
             </div>
 

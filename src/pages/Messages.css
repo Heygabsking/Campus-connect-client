@@ -430,8 +430,10 @@
 
 @media (max-width: 768px) {
   .messages-page {
-    padding: 16px 8px 80px;
-    height: calc(100vh - 120px);
+    padding: 0;
+    margin: 0;
+    height: calc(100vh - 80px);
+    overflow: hidden;
     gap: 0;
   }
   
@@ -443,6 +445,10 @@
   .messages-page:not(.chat-active) .messages-sidebar {
     width: 100%;
     display: flex;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    height: 100%;
   }
   .messages-page:not(.chat-active) .messages-window {
     display: none;
@@ -455,6 +461,10 @@
   .messages-page.chat-active .messages-window {
     width: 100%;
     display: flex;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    height: 100%;
   }
 
   .messages-sidebar h2, 
