@@ -480,15 +480,15 @@
   transform: scale(1.1);
 }
 
-body.chat-active-body .sidebar {
-  display: none !important;
-}
-
-body.chat-active-body .app-main {
-  padding-bottom: 0 !important;
-}
-
 @media (max-width: 768px) {
+  body.chat-active-body .sidebar {
+    display: none !important;
+  }
+
+  body.chat-active-body .app-main {
+    padding-bottom: 0 !important;
+  }
+
   .unsend-msg-btn {
     opacity: 0.95;
     color: #b3b3b3;
