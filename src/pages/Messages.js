@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useRef } from 'react';
-import { Send, Image, Video, Mic, Square, Trash2, Search, X } from 'lucide-react';
+import { Send, Image, Video, Mic, Square, Trash2, Search, X, ChevronLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api, { getMediaUrl } from '../utils/api';
 import toast from 'react-hot-toast';
@@ -204,7 +204,7 @@ export default function Messages() {
   };
 
   return (
-    <div className="messages-page page-fade-in">
+    <div className={`messages-page page-fade-in ${activeChat ? 'chat-active' : ''}`}>
       {/* Chats Sidebar */}
       <div className="messages-sidebar card">
         <div className="sidebar-header">
@@ -259,6 +259,14 @@ export default function Messages() {
           <>
             {/* Window Header */}
             <div className="window-header">
+              <button 
+                type="button" 
+                onClick={() => setActiveChat(null)} 
+                className="chat-back-btn"
+                title="Back to inbox"
+              >
+                <ChevronLeft size={22} />
+              </button>
               <img
                 src={getMediaUrl(getRecipientUser(activeChat)?.profilePhoto) || `https://ui-avatars.com/api/?name=${getRecipientUser(activeChat)?.username}&background=003087&color=fff`}
                 alt="" className="avatar" width={38} height={38}

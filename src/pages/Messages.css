@@ -371,23 +371,56 @@
   to { transform: scale(1.1); }
 }
 
+.chat-back-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  padding: 4px;
+}
+
 @media (max-width: 768px) {
   .messages-page {
     padding: 16px 8px 80px;
     height: calc(100vh - 120px);
+    gap: 0;
   }
-  .messages-sidebar {
-    width: 76px;
+  
+  .chat-back-btn {
+    display: flex;
   }
+
+  /* When no chat is active, show ONLY sidebar */
+  .messages-page:not(.chat-active) .messages-sidebar {
+    width: 100%;
+    display: flex;
+  }
+  .messages-page:not(.chat-active) .messages-window {
+    display: none;
+  }
+
+  /* When chat is active, show ONLY messaging window */
+  .messages-page.chat-active .messages-sidebar {
+    display: none;
+  }
+  .messages-page.chat-active .messages-window {
+    width: 100%;
+    display: flex;
+  }
+
   .messages-sidebar h2, 
   .sidebar-header button span,
   .convo-info {
-    display: none;
+    display: block;
   }
   .start-chat-btn {
-    border-radius: 50%;
-    width: 38px;
-    height: 38px;
-    padding: 0 !important;
+    border-radius: var(--radius);
+    width: auto;
+    height: auto;
+    padding: 10px 22px !important;
   }
 }
