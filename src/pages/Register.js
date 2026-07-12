@@ -17,7 +17,7 @@ export default function Register() {
     setLoading(true);
     try {
       await register(form.email, form.username, form.password, form.role);
-      toast.success('Welcome to CampusConnect! 🎉');
+      toast.success('Welcome to CampusConnect');
       navigate('/feed');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Registration failed');

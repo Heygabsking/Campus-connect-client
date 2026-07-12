@@ -5,7 +5,7 @@ import api, { getMediaUrl } from '../utils/api';
 import PostCard from '../components/PostCard';
 import CameraModal from '../components/CameraModal';
 import toast from 'react-hot-toast';
-import { Image, Send, Plus, ChevronLeft, ChevronRight, X, Camera, Upload } from 'lucide-react';
+import { Image, Send, Plus, ChevronLeft, ChevronRight, X, Camera, Upload, Trash2 } from 'lucide-react';
 import './Feed.css';
 
 export default function Feed() {
@@ -190,10 +190,34 @@ export default function Feed() {
       const updatedStories = [...stories, data];
       setStories(updatedStories);
       setGroupedStories(groupStories(updatedStories));
-      toast.success('Story shared successfully! 🌟');
+      toast.success('Story shared successfully');
       setShowStoryOpts(false);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to share story');
+    }
+  };
+
+  const handleDeleteStory = async (storyId) => {
+    if (!window.confirm('Are you sure you want to delete this story?')) return;
+    try {
+      await api.delete(`/stories/${storyId}`);
+      
+      const updatedStories = stories.filter(s => s._id !== storyId);
+      setStories(updatedStories);
+      
+      const grouped = groupStories(updatedStories);
+      setGroupedStories(grouped);
+      
+      toast.success('Story deleted');
+      
+      const currentGroup = groupedStories[activeUserStoryIdx];
+      if (currentGroup.stories.length > 1) {
+        setActiveStoryIdx(0);
+      } else {
+        closeStoryViewer();
+      }
+    } catch {
+      toast.error('Failed to delete story');
     }
   };
 
@@ -428,9 +452,20 @@ export default function Feed() {
                   {new Date(groupedStories[activeUserStoryIdx].stories[activeStoryIdx].createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
-              <button onClick={closeStoryViewer} className="story-viewer-close">
-                <X size={20} />
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {((groupedStories[activeUserStoryIdx].user?._id === user?._id) || (user?.role === 'admin')) && (
+                  <button 
+                    onClick={() => handleDeleteStory(groupedStories[activeUserStoryIdx].stories[activeStoryIdx]._id)} 
+                    style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '4px' }}
+                    title="Delete Story"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                )}
+                <button onClick={closeStoryViewer} className="story-viewer-close">
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             {/* Media content */}

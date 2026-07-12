@@ -53,7 +53,7 @@ export default function Reels() {
       });
 
       setReels([data, ...reels]);
-      toast.success('Reel shared successfully! 🚀');
+      toast.success('Reel shared successfully');
       setShowCreate(false);
       setCaption('');
       setVideoFile(null);
@@ -129,7 +129,7 @@ export default function Reels() {
     try {
       await api.delete(`/reels/${id}`);
       setReels(reels.filter(r => r._id !== id));
-      toast.success('Reel deleted successfully! 🗑️');
+      toast.success('Reel deleted successfully');
     } catch {
       toast.error('Failed to delete reel');
     }

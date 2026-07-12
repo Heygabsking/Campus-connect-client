@@ -21,6 +21,7 @@ export default function Profile() {
   const [editForm, setEditForm] = useState({ username: '', bio: '' });
   const [editPhoto, setEditPhoto] = useState(null);
   const [updating, setUpdating] = useState(false);
+  const [removePhotoFlag, setRemovePhotoFlag] = useState(false);
 
   const isMe = id === me?._id;
 
@@ -51,6 +52,7 @@ export default function Profile() {
       formData.append('username', editForm.username);
       formData.append('bio', editForm.bio);
       if (editPhoto) formData.append('profilePhoto', editPhoto);
+      if (removePhotoFlag) formData.append('removePhoto', 'true');
 
       const { data } = await api.put('/users/profile', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -58,9 +60,10 @@ export default function Profile() {
 
       setProfile((prev) => ({ ...prev, ...data }));
       updateUserState(data);
-      toast.success('Profile updated! 🎉');
+      toast.success('Profile updated');
       setShowEdit(false);
       setEditPhoto(null);
+      setRemovePhotoFlag(false);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update profile');
     } finally {
@@ -143,10 +146,25 @@ export default function Profile() {
                 <input 
                   type="file" 
                   accept="image/*" 
-                  onChange={(e) => setEditPhoto(e.target.files[0])} 
+                  onChange={(e) => { setEditPhoto(e.target.files[0]); setRemovePhotoFlag(false); }} 
                   style={{ border: '1.5px dashed var(--border)', padding: 12, width: '100%', borderRadius: 8 }}
                 />
                 {editPhoto && <span className="file-name-hint">{editPhoto.name}</span>}
+                {profile.profilePhoto && !removePhotoFlag && (
+                  <button
+                    type="button"
+                    onClick={() => { setRemovePhotoFlag(true); setEditPhoto(null); }}
+                    className="btn-outline"
+                    style={{ color: 'var(--danger)', borderColor: 'var(--danger)', marginTop: 8, padding: '6px 12px', fontSize: '12px', width: '100%' }}
+                  >
+                    Remove Current Photo
+                  </button>
+                )}
+                {removePhotoFlag && (
+                  <span className="file-name-hint" style={{ color: 'var(--danger)', display: 'block', marginTop: 6, fontWeight: 'bold' }}>
+                    Photo will be removed on save
+                  </span>
+                )}
               </div>
               <div className="field" style={{ marginBottom: 14 }}>
                 <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600 }}>Username</label>
