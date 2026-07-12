@@ -29,3 +29,22 @@ input:focus, textarea:focus { border-color: var(--primary); }
 .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }
 .avatar { border-radius: 50%; object-fit: cover; background: var(--primary-lt); }
 .badge-update { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Responsive Layout */
+.app-layout {
+  display: flex;
+}
+.app-main {
+  flex: 1;
+  padding: 0 24px;
+  min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+  .app-layout {
+    flex-direction: column;
+  }
+  .app-main {
+    padding: 0 12px 80px 12px;
+  }
+}

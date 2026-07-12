@@ -37,3 +37,10 @@
 .comment-text { font-size: 14px; }
 .comment-form { display: flex; gap: 8px; margin-top: 10px; }
 .comment-form input { flex: 1; }
+
+@media (max-width: 576px) {
+  .post-card {
+    padding: 14px 12px;
+    border-radius: 8px;
+  }
+}

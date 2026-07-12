@@ -10,3 +10,9 @@
 .result-username { font-weight: 600; font-size: 15px; }
 .result-bio { font-size: 13px; color: var(--muted); margin-top: 2px; }
 .search-status { text-align: center; color: var(--muted); padding: 40px; }
+
+@media (max-width: 768px) {
+  .search-page {
+    padding: 16px 8px;
+  }
+}

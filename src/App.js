@@ -31,9 +31,9 @@ function Layout() {
   }
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div className="app-layout">
       <Sidebar />
-      <main style={{ flex: 1, padding: '0 24px', minHeight: '100vh' }}>
+      <main className="app-main">
         <Routes>
           <Route path="/feed"          element={<Feed />} />
           <Route path="/profile/:id"   element={<Profile />} />

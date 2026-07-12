@@ -71,3 +71,37 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
+.btn-logout:hover {
+  background: #fef2f2 !important;
+  color: var(--danger) !important;
+}
+
+@media (max-width: 576px) {
+  .profile-info {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: -40px;
+    padding: 0 16px 16px;
+  }
+  
+  .profile-details {
+    margin-top: 10px;
+  }
+  
+  .profile-cta {
+    align-self: center;
+    margin-top: 16px;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .profile-stats {
+    justify-content: center;
+  }
+  
+  .profile-page {
+    padding: 16px 8px;
+  }
+}
+

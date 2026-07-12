@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Home, Search, User, Shield, LogOut, Bell } from 'lucide-react';
+import { Home, Search, Shield, LogOut, Bell } from 'lucide-react';
 import api, { getMediaUrl } from '../utils/api';
 import './Sidebar.css';
 
@@ -65,7 +65,23 @@ export default function Sidebar() {
       ),
       label: 'Notifications'
     },
-    { to: `/profile/${user?._id}`, icon: <User size={20} />, label: 'Profile' },
+    {
+      to: `/profile/${user?._id}`,
+      icon: (
+        <img
+          src={getMediaUrl(user?.profilePhoto) || `https://ui-avatars.com/api/?name=${user?.username}&background=003087&color=fff`}
+          alt=""
+          style={{
+            width: '20px',
+            height: '20px',
+            borderRadius: '50%',
+            objectFit: 'cover',
+            border: location.pathname === `/profile/${user?._id}` ? '1.5px solid var(--primary)' : '1px solid var(--border)'
+          }}
+        />
+      ),
+      label: 'Profile'
+    },
   ];
 
   if (user?.role === 'admin')

@@ -161,3 +161,9 @@
   50% { transform: translateY(-6px); }
   100% { transform: translateY(0px); }
 }
+
+@media (max-width: 768px) {
+  .notifications-page {
+    padding: 16px 8px;
+  }
+}

@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api, { getMediaUrl } from '../utils/api';
 import PostCard from '../components/PostCard';
 import toast from 'react-hot-toast';
-import { Download, UserPlus, UserCheck, Edit } from 'lucide-react';
+import { Download, UserPlus, UserCheck, Edit, LogOut } from 'lucide-react';
 import './Profile.css';
 
 export default function Profile() {
-  const { id }                        = useParams();
-  const { user: me, updateUserState } = useAuth();
+  const { id }                                = useParams();
+  const { user: me, updateUserState, logout } = useAuth();
+  const navigate                              = useNavigate();
   const [profile, setProfile]         = useState(null);
   const [posts, setPosts]             = useState([]);
   const [following, setFollowing]     = useState(false);
@@ -104,9 +105,14 @@ export default function Profile() {
           </div>
           <div className="profile-cta">
             {isMe ? (
-              <button onClick={() => setShowEdit(true)} className="btn-outline">
-                <Edit size={15} /> Edit Profile
-              </button>
+              <>
+                <button onClick={() => setShowEdit(true)} className="btn-outline">
+                  <Edit size={15} /> Edit Profile
+                </button>
+                <button onClick={() => { logout(); navigate('/login'); }} className="btn-outline btn-logout" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }} title="Log out">
+                  <LogOut size={15} /> Log Out
+                </button>
+              </>
             ) : (
               <button onClick={toggleFollow} className={following ? 'btn-outline' : 'btn-primary'}>
                 {following ? <><UserCheck size={15} /> Following</> : <><UserPlus size={15} /> Follow</>}

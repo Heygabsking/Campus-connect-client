@@ -71,3 +71,10 @@
   color: #003087;
   font-weight: 600;
 }
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 28px 20px;
+    border-radius: 12px;
+  }
+}

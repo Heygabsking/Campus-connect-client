@@ -21,3 +21,27 @@
 .flagged-post-content { flex: 1; }
 .flagged-post-content p { font-size: 14px; color: var(--muted); margin-top: 4px; }
 .no-flagged { text-align: center; padding: 40px; color: var(--muted); }
+
+@media (max-width: 576px) {
+  .admin-page {
+    padding: 16px 8px;
+  }
+  .admin-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px;
+  }
+  .admin-row button {
+    align-self: stretch;
+    justify-content: center;
+  }
+  .admin-tabs {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .tab-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
