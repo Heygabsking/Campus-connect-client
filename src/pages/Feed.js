@@ -28,8 +28,10 @@ export default function Feed() {
   const [activeStoryIdx, setActiveStoryIdx] = useState(0); // Index inside user's story list
   const [showCamera, setShowCamera]         = useState(false);
   const [showStoryOpts, setShowStoryOpts]   = useState(false);
+  const [isPaused, setIsPaused]             = useState(false);
 
   const storyTimerRef = useRef(null);
+  const storyVideoRef = useRef(null);
 
   const fetchFeed = async () => {
     try {
@@ -84,7 +86,7 @@ export default function Feed() {
 
   // Stories slideshow navigation timer
   useEffect(() => {
-    if (activeUserStoryIdx !== null) {
+    if (activeUserStoryIdx !== null && !isPaused) {
       if (storyTimerRef.current) clearTimeout(storyTimerRef.current);
 
       const currentGroup = groupedStories[activeUserStoryIdx];
@@ -112,7 +114,18 @@ export default function Feed() {
     return () => {
       if (storyTimerRef.current) clearTimeout(storyTimerRef.current);
     };
-  }, [activeUserStoryIdx, activeStoryIdx, groupedStories]);
+  }, [activeUserStoryIdx, activeStoryIdx, groupedStories, isPaused]);
+
+  // Handle video playback pausing/playing
+  useEffect(() => {
+    if (storyVideoRef.current) {
+      if (isPaused) {
+        storyVideoRef.current.pause();
+      } else {
+        storyVideoRef.current.play().catch(() => {});
+      }
+    }
+  }, [isPaused, activeStoryIdx, activeUserStoryIdx]);
 
   const markStoryAsViewed = async (storyId) => {
     try {
@@ -143,11 +156,13 @@ export default function Feed() {
   const closeStoryViewer = () => {
     setActiveUserStoryIdx(null);
     setActiveStoryIdx(0);
+    setIsPaused(false);
     if (storyTimerRef.current) clearTimeout(storyTimerRef.current);
   };
 
   const nextStory = () => {
     const currentGroup = groupedStories[activeUserStoryIdx];
+    setIsPaused(false);
     if (activeStoryIdx < currentGroup.stories.length - 1) {
       const nextIdx = activeStoryIdx + 1;
       setActiveStoryIdx(nextIdx);
@@ -430,7 +445,10 @@ export default function Feed() {
                   <div key={s._id} className="story-progress-bar">
                     <div 
                       className={`story-progress-fill ${sIdx === activeStoryIdx ? 'active' : ''}`}
-                      style={{ width: sIdx === activeStoryIdx ? undefined : fillWidth }}
+                      style={{ 
+                        width: sIdx === activeStoryIdx ? undefined : fillWidth,
+                        animationPlayState: (sIdx === activeStoryIdx && isPaused) ? 'paused' : 'running'
+                      }}
                     />
                   </div>
                 );
@@ -469,9 +487,17 @@ export default function Feed() {
             </div>
 
             {/* Media content */}
-            <div className="story-viewer-media">
+            <div 
+              className="story-viewer-media"
+              onMouseDown={() => setIsPaused(true)}
+              onMouseUp={() => setIsPaused(false)}
+              onMouseLeave={() => setIsPaused(false)}
+              onTouchStart={() => setIsPaused(true)}
+              onTouchEnd={() => setIsPaused(false)}
+            >
               {groupedStories[activeUserStoryIdx].stories[activeStoryIdx].mediaType === 'video' ? (
                 <video
+                  ref={storyVideoRef}
                   src={getMediaUrl(groupedStories[activeUserStoryIdx].stories[activeStoryIdx].mediaUrl)}
                   autoPlay
                   playsInline

@@ -132,9 +132,9 @@
 .story-viewer-container {
   position: relative;
   width: 100%;
-  maxWidth: 420px;
+  max-width: 420px;
   height: 100%;
-  maxHeight: 720px;
+  max-height: 720px;
   background: #000;
   display: flex;
   flex-direction: column;
