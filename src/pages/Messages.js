@@ -41,6 +41,18 @@ export default function Messages() {
     fetchChats();
   }, []);
 
+  // Toggle body class to hide bottom tab navigation on mobile when chat is active
+  useEffect(() => {
+    if (activeChat) {
+      document.body.classList.add('chat-active-body');
+    } else {
+      document.body.classList.remove('chat-active-body');
+    }
+    return () => {
+      document.body.classList.remove('chat-active-body');
+    };
+  }, [activeChat]);
+
   useEffect(() => {
     if (activeChat) {
       fetchMessages(activeChat._id);
@@ -142,6 +154,13 @@ export default function Messages() {
   const startRecording = async () => {
     isHoldRecordingRef.current = true;
     autoSendRef.current = false;
+    
+    // Stop any legacy streams to prevent hardware access lockup
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
@@ -488,7 +507,7 @@ export default function Messages() {
                         className="unsend-msg-btn"
                         title="Unsend message"
                       >
-                        <Trash2 size={13} />
+                        <Trash2 size={16} />
                       </button>
                     )}
                   </div>

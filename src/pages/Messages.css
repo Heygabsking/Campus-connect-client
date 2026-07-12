@@ -456,16 +456,18 @@
 .unsend-msg-btn {
   background: none;
   border: none;
-  color: #8e8e8e;
+  color: #a0a0a0;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.2s, color 0.2s;
-  padding: 8px;
+  transition: opacity 0.2s, color 0.2s, transform 0.2s;
+  padding: 10px;
   align-self: center;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  min-width: 38px;
+  min-height: 38px;
 }
 
 .message-bubble-wrapper.sent:hover .unsend-msg-btn,
@@ -475,17 +477,27 @@
 
 .unsend-msg-btn:hover {
   color: var(--danger);
+  transform: scale(1.1);
+}
+
+body.chat-active-body .sidebar {
+  display: none !important;
+}
+
+body.chat-active-body .app-main {
+  padding-bottom: 0 !important;
 }
 
 @media (max-width: 768px) {
   .unsend-msg-btn {
-    opacity: 0.8;
+    opacity: 0.95;
+    color: #b3b3b3;
   }
 
   .messages-page {
     padding: 0;
     margin: 0;
-    height: calc(100vh - 80px);
+    height: calc(100dvh - 80px);
     overflow: hidden;
     gap: 0;
   }
@@ -496,7 +508,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    height: 100%;
+    height: 100dvh;
     z-index: 2100;
   }
   
