@@ -449,13 +449,55 @@
   padding: 4px;
 }
 
+.ig-input-icon-btn {
+  touch-action: none;
+}
+
+.unsend-msg-btn {
+  background: none;
+  border: none;
+  color: #8e8e8e;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s;
+  padding: 8px;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.message-bubble-wrapper.sent:hover .unsend-msg-btn,
+.unsend-msg-btn:focus-visible {
+  opacity: 1;
+}
+
+.unsend-msg-btn:hover {
+  color: var(--danger);
+}
+
 @media (max-width: 768px) {
+  .unsend-msg-btn {
+    opacity: 0.8;
+  }
+
   .messages-page {
     padding: 0;
     margin: 0;
     height: calc(100vh - 80px);
     overflow: hidden;
     gap: 0;
+  }
+
+  .messages-page.chat-active {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100%;
+    z-index: 2100;
   }
   
   .chat-back-btn {

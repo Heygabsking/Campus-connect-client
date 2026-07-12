@@ -140,8 +140,17 @@ export default function Messages() {
 
   // Start voice recording
   const startRecording = async () => {
+    isHoldRecordingRef.current = true;
+    autoSendRef.current = false;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Abort if they already released their finger while mic was initializing
+      if (!isHoldRecordingRef.current) {
+        stream.getTracks().forEach(track => track.stop());
+        return;
+      }
+
       streamRef.current = stream;
       audioChunksRef.current = [];
       
@@ -254,7 +263,12 @@ export default function Messages() {
     if (recordingLocked) {
       return;
     }
-    stopRecordingAndSend();
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      stopRecordingAndSend();
+    } else {
+      setRecording(false);
+      setRecordingLocked(false);
+    }
   };
 
   // Hold recording mouse event listeners
@@ -281,7 +295,12 @@ export default function Messages() {
     isHoldRecordingRef.current = false;
 
     if (recordingLocked) return;
-    stopRecordingAndSend();
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      stopRecordingAndSend();
+    } else {
+      setRecording(false);
+      setRecordingLocked(false);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -329,6 +348,20 @@ export default function Messages() {
       toast.error('Message failed to send');
     } finally {
       setSendingMessage(false);
+    }
+  };
+
+  const handleUnsendMessage = async (messageId) => {
+    if (!window.confirm("Unsend this message?")) return;
+    try {
+      await api.delete(`/chats/message/${messageId}`);
+      setMessages(prev => prev.filter(m => m._id !== messageId));
+      toast.success('Message unsent');
+      // Sync sidebar preview
+      const { data } = await api.get('/chats');
+      setChats(data);
+    } catch (err) {
+      toast.error('Could not unsend message');
     }
   };
 
@@ -448,6 +481,16 @@ export default function Messages() {
                         {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
+                    {isSentByMe && (
+                      <button 
+                        type="button"
+                        onClick={() => handleUnsendMessage(m._id)}
+                        className="unsend-msg-btn"
+                        title="Unsend message"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
                   </div>
                 );
               })}
