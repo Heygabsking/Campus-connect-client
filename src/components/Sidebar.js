@@ -92,10 +92,10 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-logo">
+      <Link to="/feed" className="sidebar-logo" style={{ textDecoration: 'none' }}>
         <div className="sidebar-logo-icon">CC</div>
         <span>CampusConnect</span>
-      </div>
+      </Link>
 
       <nav className="sidebar-nav">
         {nav.map(({ to, icon, label }) => (

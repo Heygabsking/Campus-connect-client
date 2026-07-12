@@ -290,11 +290,17 @@
   color: var(--primary);
 }
 
-.input-form input {
+.input-form textarea {
   flex: 1;
   border-radius: 20px;
   padding: 10px 18px;
   background: #f8fafc;
+  resize: none;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 18px;
+  max-height: 100px;
+  border: 1.5px solid var(--border);
 }
 
 .control-btn {

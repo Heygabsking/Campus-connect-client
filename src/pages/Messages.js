@@ -152,6 +152,13 @@ export default function Messages() {
     setVoiceSeconds(0);
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
   const handleSend = async (e) => {
     if (e) e.preventDefault();
     if (!text.trim() && !mediaFile && !voiceBlob) return;
@@ -351,11 +358,13 @@ export default function Messages() {
                   </label>
                 </div>
 
-                <input
+                <textarea
                   value={text}
                   onChange={e => setText(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   placeholder={recording ? "Recording audio note..." : "Type a message..."}
                   disabled={recording || voiceBlob}
+                  rows={1}
                 />
 
                 {/* Voice Note controls */}
