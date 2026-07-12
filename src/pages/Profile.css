@@ -1,0 +1,73 @@
+.profile-page { max-width: 680px; margin: 0 auto; padding: 24px 0; }
+.profile-loading { text-align: center; padding: 60px; color: var(--muted); }
+.profile-card { margin-bottom: 24px; padding: 0; overflow: hidden; }
+.profile-banner { height: 100px; background: linear-gradient(135deg, #003087, #0055cc); }
+.profile-info { display: flex; align-items: flex-end; gap: 16px; padding: 0 20px 20px; flex-wrap: wrap; margin-top: -36px; }
+.profile-avatar { width: 80px; height: 80px; border: 3px solid #fff; flex-shrink: 0; }
+.profile-details { flex: 1; }
+.profile-details h2 { font-size: 18px; font-weight: 700; }
+.profile-bio { font-size: 14px; color: var(--muted); margin: 4px 0 10px; }
+.profile-stats { display: flex; gap: 20px; font-size: 14px; color: var(--muted); }
+.profile-stats strong { color: var(--text); }
+.profile-cta { display: flex; gap: 8px; flex-wrap: wrap; align-self: flex-start; margin-top: 40px; }
+.profile-cta button { display: flex; align-items: center; gap: 6px; }
+.posts-heading { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.no-posts { color: var(--muted); text-align: center; padding: 40px; }
+
+/* Modal styles for editing profile */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 24px;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.file-name-hint {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+

@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap');
+
+:root {
+  --primary:    #003087;
+  --primary-lt: #e8eef8;
+  --accent:     #e8a020;
+  --danger:     #e03c3c;
+  --success:    #2e9e5b;
+  --bg:         #f4f6fb;
+  --card:       #ffffff;
+  --border:     #e2e8f0;
+  --text:       #1a202c;
+  --muted:      #718096;
+  --radius:     12px;
+  --shadow:     0 2px 12px rgba(0,0,0,0.07);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+a { text-decoration: none; color: inherit; }
+button { cursor: pointer; font-family: inherit; border: none; outline: none; }
+input, textarea { font-family: inherit; outline: none; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 14px; width: 100%; transition: border-color 0.2s; background: #fff; }
+input:focus, textarea:focus { border-color: var(--primary); }
+
+.btn-primary { background: var(--primary); color: #fff; padding: 10px 22px; border-radius: 8px; font-weight: 600; font-size: 14px; transition: opacity 0.2s; }
+.btn-primary:hover { opacity: 0.88; }
+.btn-outline { background: transparent; color: var(--primary); padding: 9px 22px; border-radius: 8px; border: 1.5px solid var(--primary); font-weight: 600; font-size: 14px; transition: all 0.2s; }
+.btn-outline:hover { background: var(--primary-lt); }
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }
+.avatar { border-radius: 50%; object-fit: cover; background: var(--primary-lt); }
+.badge-update { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }

@@ -1,0 +1,12 @@
+.search-page { max-width: 600px; margin: 0 auto; padding: 24px 0; }
+.search-box { margin-bottom: 20px; }
+.search-input-wrap { display: flex; align-items: center; gap: 10px; }
+.search-icon { color: var(--muted); flex-shrink: 0; }
+.search-input { border: none; font-size: 16px; padding: 0; background: transparent; }
+.search-input:focus { outline: none; border: none; }
+.search-results { display: flex; flex-direction: column; gap: 10px; }
+.user-result { display: flex; align-items: center; gap: 14px; transition: box-shadow 0.15s; }
+.user-result:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+.result-username { font-weight: 600; font-size: 15px; }
+.result-bio { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.search-status { text-align: center; color: var(--muted); padding: 40px; }
