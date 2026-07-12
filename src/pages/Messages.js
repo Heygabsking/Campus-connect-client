@@ -22,7 +22,6 @@ export default function Messages() {
 
   // Voice Note Recorder states
   const [recording, setRecording] = useState(false);
-  const [recordingLocked, setRecordingLocked] = useState(false);
   const [voiceBlob, setVoiceBlob] = useState(null);
   const [voiceSeconds, setVoiceSeconds] = useState(0);
   const [mediaFile, setMediaFile] = useState(null);
@@ -31,9 +30,7 @@ export default function Messages() {
   const audioChunksRef = useRef([]);
   const recordingTimerRef = useRef(null);
   const messageEndRef = useRef(null);
-  const touchStartXRef = useRef(0);
   const isHoldRecordingRef = useRef(false);
-  const autoSendRef = useRef(false);
   const voiceSecondsRef = useRef(0);
   const streamRef = useRef(null);
 
@@ -153,7 +150,6 @@ export default function Messages() {
   // Start voice recording
   const startRecording = async () => {
     isHoldRecordingRef.current = true;
-    autoSendRef.current = false;
     
     // Stop any legacy streams to prevent hardware access lockup
     if (streamRef.current) {
@@ -188,24 +184,15 @@ export default function Messages() {
 
         if (voiceSecondsRef.current < 1) {
           toast.error('Recording too short');
-          setRecordingLocked(false);
           isHoldRecordingRef.current = false;
           return;
         }
 
-        if (autoSendRef.current) {
-          autoSendRef.current = false;
-          await sendAudioBlobDirectly(audioBlob);
-        } else {
-          setVoiceBlob(audioBlob);
-        }
-        
-        setRecordingLocked(false);
+        await sendAudioBlobDirectly(audioBlob);
       };
 
       mediaRecorder.start();
       setRecording(true);
-      setRecordingLocked(false);
       setVoiceSeconds(0);
       voiceSecondsRef.current = 0;
       setVoiceBlob(null);
@@ -224,54 +211,39 @@ export default function Messages() {
 
   // Stop voice recording
   const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-      setRecording(false);
-      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
-    }
+    try {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+    } catch (e) {}
+    setRecording(false);
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
   };
 
   const cancelRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.onstop = null; 
-      mediaRecorderRef.current.stop();
-    }
+    try {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.onstop = null; 
+        mediaRecorderRef.current.stop();
+      }
+    } catch (e) {}
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
     }
     setRecording(false);
-    setRecordingLocked(false);
     isHoldRecordingRef.current = false;
     if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
     setVoiceSeconds(0);
     voiceSecondsRef.current = 0;
     setVoiceBlob(null);
-    toast.success('Recording cancelled');
-  };
-
-  const stopRecordingAndSend = () => {
-    autoSendRef.current = true;
-    stopRecording();
   };
 
   // Hold recording touch event listeners
   const handleTouchStart = (e) => {
     if (recording || voiceBlob) return;
     e.preventDefault();
-    const touch = e.touches[0];
-    touchStartXRef.current = touch.clientX;
     isHoldRecordingRef.current = true;
     startRecording();
-  };
-
-  const handleTouchMove = (e) => {
-    if (!isHoldRecordingRef.current || recordingLocked) return;
-    const touch = e.touches[0];
-    const diffX = touchStartXRef.current - touch.clientX;
-    if (diffX > 45) { 
-      setRecordingLocked(true);
-      toast.success('Hands-free lock active 🔒');
-    }
   };
 
   const handleTouchEnd = (e) => {
@@ -279,14 +251,10 @@ export default function Messages() {
     if (!isHoldRecordingRef.current) return;
     isHoldRecordingRef.current = false;
 
-    if (recordingLocked) {
-      return;
-    }
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      stopRecordingAndSend();
+      stopRecording();
     } else {
       setRecording(false);
-      setRecordingLocked(false);
     }
   };
 
@@ -294,18 +262,8 @@ export default function Messages() {
   const handleMouseDown = (e) => {
     if (recording || voiceBlob) return;
     e.preventDefault();
-    touchStartXRef.current = e.clientX;
     isHoldRecordingRef.current = true;
     startRecording();
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isHoldRecordingRef.current || recordingLocked) return;
-    const diffX = touchStartXRef.current - e.clientX;
-    if (diffX > 45) {
-      setRecordingLocked(true);
-      toast.success('Hands-free lock active 🔒');
-    }
   };
 
   const handleMouseUp = (e) => {
@@ -313,12 +271,10 @@ export default function Messages() {
     if (!isHoldRecordingRef.current) return;
     isHoldRecordingRef.current = false;
 
-    if (recordingLocked) return;
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      stopRecordingAndSend();
+      stopRecording();
     } else {
       setRecording(false);
-      setRecordingLocked(false);
     }
   };
 
@@ -537,55 +493,26 @@ export default function Messages() {
               <form onSubmit={handleSend} className="input-form">
                 <div className="ig-pill-input">
                   {recording ? (
-                    recordingLocked ? (
-                      <div className="recording-locked-container" style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                        <button 
-                          type="button" 
-                          onClick={cancelRecording} 
-                          className="ig-trash-btn"
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
-                          title="Discard recording"
-                        >
-                          <Trash2 size={20} color="var(--danger)" />
-                        </button>
-                        <div className="recording-status" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff' }}>
-                          <span className="recording-dot pulsing" />
-                          <span style={{ fontSize: '14px', fontWeight: '600' }}>Recording ({formatTime(voiceSeconds)})</span>
-                        </div>
-                        <button 
-                          type="button" 
-                          onClick={stopRecordingAndSend} 
-                          className="ig-send-btn active"
-                          style={{ background: 'none', border: 'none', color: '#3897f0', fontWeight: '700', cursor: 'pointer' }}
-                          title="Send voice note"
-                        >
-                          <Send size={14} />
-                        </button>
+                    <div className="recording-holding-container" style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                      <div className="recording-status" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff' }}>
+                        <span className="recording-dot pulsing" />
+                        <span style={{ fontSize: '14px', fontWeight: '600' }}>Recording ({formatTime(voiceSeconds)})</span>
                       </div>
-                    ) : (
-                      <div className="recording-holding-container" style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                        <div className="recording-status" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff' }}>
-                          <span className="recording-dot pulsing" />
-                          <span style={{ fontSize: '14px' }}>{formatTime(voiceSeconds)}</span>
-                        </div>
-                        <div className="swipe-instruction" style={{ color: '#8e8e8e', fontSize: '12px' }}>
-                          ← Slide left to lock
-                        </div>
-                        <button
-                          type="button"
-                          className="ig-input-icon-btn recording-mic"
-                          onMouseDown={handleMouseDown}
-                          onMouseMove={handleMouseMove}
-                          onMouseUp={handleMouseUp}
-                          onTouchStart={handleTouchStart}
-                          onTouchMove={handleTouchMove}
-                          onTouchEnd={handleTouchEnd}
-                          title="Recording..."
-                        >
-                          <Mic size={20} />
-                        </button>
+                      <div style={{ color: '#8e8e8e', fontSize: '12px' }}>
+                        Release to send
                       </div>
-                    )
+                      <button
+                        type="button"
+                        className="ig-input-icon-btn recording-mic"
+                        onMouseDown={handleMouseDown}
+                        onMouseUp={handleMouseUp}
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                        title="Recording..."
+                      >
+                        <Mic size={20} />
+                      </button>
+                    </div>
                   ) : (
                     <>
                       {/* File uploads */}
@@ -614,12 +541,10 @@ export default function Messages() {
                           type="button" 
                           className="ig-input-icon-btn"
                           onMouseDown={handleMouseDown}
-                          onMouseMove={handleMouseMove}
                           onMouseUp={handleMouseUp}
                           onTouchStart={handleTouchStart}
-                          onTouchMove={handleTouchMove}
                           onTouchEnd={handleTouchEnd}
-                          title="Hold to record, slide left to lock"
+                          title="Hold to record"
                         >
                           <Mic size={20} />
                         </button>
