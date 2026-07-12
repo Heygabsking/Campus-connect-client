@@ -8,6 +8,7 @@ import Feed     from './pages/Feed';
 import Profile  from './pages/Profile';
 import Search   from './pages/Search';
 import Admin    from './pages/Admin';
+import Notifications from './pages/Notifications';
 import './index.css';
 
 const AUTH_ROUTES = ['/login', '/register'];
@@ -37,6 +38,7 @@ function Layout() {
           <Route path="/feed"          element={<Feed />} />
           <Route path="/profile/:id"   element={<Profile />} />
           <Route path="/search"        element={<Search />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/admin"         element={user?.role === 'admin' ? <Admin /> : <Navigate to="/feed" />} />
           <Route path="*"              element={<Navigate to="/feed" />} />
         </Routes>

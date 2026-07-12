@@ -1,17 +1,70 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Home, Search, User, Shield, LogOut } from 'lucide-react';
-import { getMediaUrl } from '../utils/api';
+import { Home, Search, User, Shield, LogOut, Bell } from 'lucide-react';
+import api, { getMediaUrl } from '../utils/api';
 import './Sidebar.css';
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
   const location         = useLocation();
   const navigate         = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchUnread = async () => {
+      try {
+        const { data } = await api.get('/notifications');
+        setUnreadCount(data.filter(n => !n.isRead).length);
+      } catch (err) {
+        // Fail silently
+      }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 15000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // Handle manual/instant reset of badge when navigation moves to notifications
+  useEffect(() => {
+    if (location.pathname === '/notifications') {
+      setUnreadCount(0);
+    }
+  }, [location.pathname]);
 
   const nav = [
     { to: '/feed',   icon: <Home size={20} />,   label: 'Home' },
     { to: '/search', icon: <Search size={20} />,  label: 'Search' },
+    {
+      to: '/notifications',
+      icon: (
+        <div style={{ position: 'relative', display: 'inline-flex' }}>
+          <Bell size={20} />
+          {unreadCount > 0 && (
+            <span className="badge-unread" style={{
+              position: 'absolute',
+              top: '-6px',
+              right: '-6px',
+              background: 'var(--danger)',
+              color: '#fff',
+              borderRadius: '50%',
+              minWidth: '14px',
+              height: '14px',
+              fontSize: '9px',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0 3px'
+            }}>
+              {unreadCount}
+            </span>
+          )}
+        </div>
+      ),
+      label: 'Notifications'
+    },
     { to: `/profile/${user?._id}`, icon: <User size={20} />, label: 'Profile' },
   ];
 

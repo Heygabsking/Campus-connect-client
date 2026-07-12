@@ -13,8 +13,8 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  const register = async (email, username, password) => {
-    const { data } = await api.post('/auth/register', { email, username, password });
+  const register = async (email, username, password, role) => {
+    const { data } = await api.post('/auth/register', { email, username, password, role });
     localStorage.setItem('ccUser', JSON.stringify(data));
     setUser(data);
     return data;

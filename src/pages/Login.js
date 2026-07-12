@@ -31,13 +31,13 @@ export default function Login() {
         <div className="auth-logo">
           <div className="auth-logo-icon">CC</div>
           <h1>CampusConnect</h1>
-          <p>USIU-Africa Student Platform</p>
+          <p>CampusConnect Student Platform</p>
         </div>
 
         <form onSubmit={submit}>
           <div className="field">
             <label>Email</label>
-            <input name="email" type="email" placeholder="you@usiu.ac.ke" value={form.email} onChange={handle} required />
+            <input name="email" type="email" placeholder="you@example.com" value={form.email} onChange={handle} required />
           </div>
           <div className="field">
             <label>Password</label>

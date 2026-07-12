@@ -32,6 +32,27 @@ export default function PostCard({ post, onDelete }) {
     } catch { toast.error('Failed to comment'); }
   };
 
+  const handleCommentLike = async (commentId) => {
+    if (!user) return;
+    try {
+      const { data } = await api.put(`/posts/${post._id}/comment/${commentId}/like`);
+      setComments(comments.map(c => {
+        if (c._id === commentId) {
+          let newLikes = c.likes ? [...c.likes] : [];
+          if (data.liked) {
+            newLikes.push(user._id);
+          } else {
+            newLikes = newLikes.filter(id => id.toString() !== user._id.toString());
+          }
+          return { ...c, likes: newLikes };
+        }
+        return c;
+      }));
+    } catch (err) {
+      toast.error('Failed to like comment');
+    }
+  };
+
   const handleDelete = async () => {
     if (!window.confirm('Delete this post?')) return;
     try {
@@ -98,15 +119,36 @@ export default function PostCard({ post, onDelete }) {
       {showComments && (
         <div className="comments-section">
           {comments.map((c, i) => (
-            <div key={i} className="comment">
-              <img
-                src={getMediaUrl(c.user?.profilePhoto) || `https://ui-avatars.com/api/?name=${c.user?.username}&background=003087&color=fff`}
-                alt="" className="avatar" width={26} height={26}
-              />
-              <div className="comment-body">
-                <span className="comment-user">@{c.user?.username}</span>
-                <span className="comment-text">{c.text}</span>
+            <div key={c._id || i} className="comment" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <img
+                  src={getMediaUrl(c.user?.profilePhoto) || `https://ui-avatars.com/api/?name=${c.user?.username}&background=003087&color=fff`}
+                  alt="" className="avatar" width={26} height={26}
+                />
+                <div className="comment-body">
+                  <span className="comment-user">@{c.user?.username}</span>
+                  <span className="comment-text">{c.text}</span>
+                </div>
               </div>
+              <button
+                onClick={() => handleCommentLike(c._id)}
+                className={`comment-like-btn ${c.likes?.includes(user?._id) ? 'liked' : ''}`}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  color: c.likes?.includes(user?._id) ? '#e03c3c' : 'var(--muted)',
+                  fontSize: '12px',
+                  padding: '4px'
+                }}
+                title="Like comment"
+              >
+                <Heart size={12} fill={c.likes?.includes(user?._id) ? '#e03c3c' : 'none'} color={c.likes?.includes(user?._id) ? '#e03c3c' : 'currentColor'} />
+                <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{c.likes?.length || 0}</span>
+              </button>
             </div>
           ))}
           <form onSubmit={submitComment} className="comment-form">

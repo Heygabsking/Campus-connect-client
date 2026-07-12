@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import './Auth.css';
 
 export default function Register() {
-  const [form, setForm]       = useState({ email: '', username: '', password: '' });
+  const [form, setForm]       = useState({ email: '', username: '', password: '', role: 'student' });
   const [loading, setLoading] = useState(false);
   const { register }          = useAuth();
   const navigate              = useNavigate();
@@ -16,7 +16,7 @@ export default function Register() {
     e.preventDefault();
     setLoading(true);
     try {
-      await register(form.email, form.username, form.password);
+      await register(form.email, form.username, form.password, form.role);
       toast.success('Welcome to CampusConnect! 🎉');
       navigate('/feed');
     } catch (err) {
@@ -32,17 +32,24 @@ export default function Register() {
         <div className="auth-logo">
           <div className="auth-logo-icon">CC</div>
           <h1>CampusConnect</h1>
-          <p>Join the USIU-Africa community</p>
+          <p>Join the CampusConnect community</p>
         </div>
 
         <form onSubmit={submit}>
           <div className="field">
             <label>Email</label>
-            <input name="email" type="email" placeholder="you@usiu.ac.ke" value={form.email} onChange={handle} required />
+            <input name="email" type="email" placeholder="you@example.com" value={form.email} onChange={handle} required />
           </div>
           <div className="field">
             <label>Username</label>
             <input name="username" placeholder="e.g. nancy_wanjiku" value={form.username} onChange={handle} required />
+          </div>
+          <div className="field">
+            <label>Role</label>
+            <select name="role" value={form.role} onChange={handle} className="role-select" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: '#fff', fontSize: '14px', outline: 'none' }} required>
+              <option value="student">Student</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
           <div className="field">
             <label>Password</label>
