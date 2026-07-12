@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Heart, MessageCircle, Send, Video, Upload, X } from 'lucide-react';
+import { Heart, MessageCircle, Send, Video, Upload, X, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api, { getMediaUrl } from '../utils/api';
 import CameraModal from '../components/CameraModal';
@@ -124,6 +124,17 @@ export default function Reels() {
     }
   };
 
+  const handleDeleteReel = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this reel?')) return;
+    try {
+      await api.delete(`/reels/${id}`);
+      setReels(reels.filter(r => r._id !== id));
+      toast.success('Reel deleted successfully! 🗑️');
+    } catch {
+      toast.error('Failed to delete reel');
+    }
+  };
+
   return (
     <div className="reels-page">
       <div className="reels-header card">
@@ -181,6 +192,12 @@ export default function Reels() {
                     <MessageCircle size={24} />
                     <span>{r.comments?.length || 0}</span>
                   </button>
+                  {((r.author?._id === user?._id) || (user?.role === 'admin')) && (
+                    <button onClick={() => handleDeleteReel(r._id)} className="action-btn delete-btn" style={{ color: 'var(--danger)', marginTop: '8px' }}>
+                      <Trash2 size={24} />
+                      <span style={{ fontSize: '10px' }}>Delete</span>
+                    </button>
+                  )}
                 </div>
               </div>
             );
