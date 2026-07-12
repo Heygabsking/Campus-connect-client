@@ -21,7 +21,7 @@ export default function Search() {
   };
 
   return (
-    <div className="search-page">
+    <div className="search-page page-fade-in">
       <div className="search-box card">
         <div className="search-input-wrap">
           <SearchIcon size={18} className="search-icon" />

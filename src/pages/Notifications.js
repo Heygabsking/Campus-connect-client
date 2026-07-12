@@ -85,7 +85,7 @@ export default function Notifications() {
   };
 
   return (
-    <div className="notifications-page">
+    <div className="notifications-page page-fade-in">
       <div className="notifications-header card">
         <div className="header-info">
           <h1>🔔 Notifications</h1>

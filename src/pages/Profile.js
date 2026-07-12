@@ -89,7 +89,7 @@ export default function Profile() {
   if (!profile) return <div className="profile-loading">User not found</div>;
 
   return (
-    <div className="profile-page">
+    <div className="profile-page page-fade-in">
       <div className="profile-card card">
         <div className="profile-banner" />
         <div className="profile-info">

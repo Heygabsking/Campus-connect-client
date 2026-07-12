@@ -31,7 +31,7 @@ export default function Admin() {
   };
 
   return (
-    <div className="admin-page">
+    <div className="admin-page page-fade-in">
       <div className="admin-header card">
         <h1>🛡 Admin Panel</h1>
         <p>USIU-Africa CampusConnect moderation</p>

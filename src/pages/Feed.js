@@ -289,7 +289,7 @@ export default function Feed() {
   };
 
   return (
-    <div className="feed-layout">
+    <div className="feed-layout page-fade-in">
       <main className="feed-main">
         {/* Stories Bar */}
         <div className="stories-bar card">

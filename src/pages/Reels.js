@@ -136,7 +136,7 @@ export default function Reels() {
   };
 
   return (
-    <div className="reels-page">
+    <div className="reels-page page-fade-in">
       <div className="reels-header card">
         <div className="header-info">
           <h1>🎬 Campus Reels</h1>
