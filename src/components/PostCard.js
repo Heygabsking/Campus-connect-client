@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, MessageCircle, Trash2, Flag } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, Flag, Repeat } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api, { getMediaUrl } from '../utils/api';
 import toast from 'react-hot-toast';
@@ -13,6 +13,7 @@ export default function PostCard({ post, onDelete }) {
   const [comments, setComments] = useState(post.comments || []);
   const [showComments, setShow] = useState(false);
   const [commentText, setText]  = useState('');
+  const [reposting, setReposting] = useState(false);
 
   const toggleLike = async () => {
     try {
@@ -20,6 +21,36 @@ export default function PostCard({ post, onDelete }) {
       setLikes(data.likes);
       setLiked(data.liked);
     } catch { toast.error('Failed to like'); }
+  };
+
+  const handleRepost = async () => {
+    if (reposting) return;
+    setReposting(true);
+    try {
+      await api.post(`/posts/${post._id}/repost`);
+      toast.success('Repost shared');
+      window.location.reload();
+    } catch {
+      toast.error('Failed to repost');
+    } finally {
+      setReposting(false);
+    }
+  };
+
+  const parseContent = (text) => {
+    if (!text) return '';
+    const parts = text.split(/(@\w+)/g);
+    return parts.map((part, idx) => {
+      if (part.startsWith('@')) {
+        const username = part.slice(1);
+        return (
+          <Link key={idx} to={`/search?q=${username}`} className="mention-link">
+            {part}
+          </Link>
+        );
+      }
+      return part;
+    });
   };
 
   const submitComment = async (e) => {
@@ -103,8 +134,31 @@ export default function PostCard({ post, onDelete }) {
         </div>
       </div>
 
-      <p className="post-content">{post.content}</p>
+      <p className="post-content">{parseContent(post.content)}</p>
       {post.imageUrl && <img src={getMediaUrl(post.imageUrl)} alt="post" className="post-image" />}
+
+      {post.repostOf && (
+        <div className="repost-nested-box card">
+          <div className="repost-nested-header">
+            <img
+              src={getMediaUrl(post.repostOf.author?.profilePhoto) || `https://ui-avatars.com/api/?name=${post.repostOf.author?.username}&background=003087&color=fff`}
+              alt="" className="avatar" width={24} height={24}
+            />
+            <div className="repost-nested-author-info">
+              <span className="repost-nested-username">@{post.repostOf.author?.username}</span>
+              <span className="repost-nested-tag">Original Thought</span>
+            </div>
+          </div>
+          <p className="repost-nested-content">{parseContent(post.repostOf.content)}</p>
+          {post.repostOf.imageUrl && (
+            <img 
+              src={getMediaUrl(post.repostOf.imageUrl)} 
+              alt="attachment" 
+              className="repost-nested-image" 
+            />
+          )}
+        </div>
+      )}
 
       <div className="post-footer">
         <button className={`react-btn ${liked ? 'liked' : ''}`} onClick={toggleLike}>
@@ -113,6 +167,9 @@ export default function PostCard({ post, onDelete }) {
         </button>
         <button className="react-btn" onClick={() => setShow(!showComments)}>
           <MessageCircle size={17} /> <span>{comments.length}</span>
+        </button>
+        <button className="react-btn repost-btn" onClick={handleRepost} disabled={reposting} title="Repost this thought">
+          <Repeat size={17} /> <span>Repost</span>
         </button>
       </div>
 

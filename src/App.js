@@ -10,6 +10,8 @@ import Search   from './pages/Search';
 import Admin    from './pages/Admin';
 import Notifications from './pages/Notifications';
 import Reels from './pages/Reels';
+import Messages from './pages/Messages';
+import Lecturers from './pages/Lecturers';
 import './index.css';
 
 const AUTH_ROUTES = ['/login', '/register'];
@@ -41,6 +43,8 @@ function Layout() {
           <Route path="/search"        element={<Search />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/reels"         element={<Reels />} />
+          <Route path="/messages"      element={<Messages />} />
+          <Route path="/lecturers"     element={<Lecturers />} />
           <Route path="/admin"         element={user?.role === 'admin' ? <Admin /> : <Navigate to="/feed" />} />
           <Route path="*"              element={<Navigate to="/feed" />} />
         </Routes>

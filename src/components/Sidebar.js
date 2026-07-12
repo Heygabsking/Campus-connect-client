@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Home, Search, Shield, LogOut, Bell, Film } from 'lucide-react';
+import { Home, Search, Shield, LogOut, Bell, Film, MessageSquare, BookOpen } from 'lucide-react';
 import api, { getMediaUrl } from '../utils/api';
 import './Sidebar.css';
 
@@ -34,9 +34,11 @@ export default function Sidebar() {
   }, [location.pathname]);
 
   const nav = [
-    { to: '/feed',   icon: <Home size={20} />,   label: 'Home' },
-    { to: '/search', icon: <Search size={20} />,  label: 'Search' },
-    { to: '/reels',  icon: <Film size={20} />,   label: 'Reels' },
+    { to: '/feed',      icon: <Home size={20} />,   label: 'Home' },
+    { to: '/search',    icon: <Search size={20} />,  label: 'Search' },
+    { to: '/reels',     icon: <Film size={20} />,   label: 'Reels' },
+    { to: '/messages',  icon: <MessageSquare size={20} />, label: 'Messages' },
+    { to: '/lecturers', icon: <BookOpen size={20} />, label: 'Lecturers' },
     {
       to: '/notifications',
       icon: (
