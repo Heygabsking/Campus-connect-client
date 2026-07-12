@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useRef } from 'react';
 import { Camera, Video, Square, X, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';

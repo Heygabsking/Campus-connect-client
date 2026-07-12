@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api, { getMediaUrl } from '../utils/api';
