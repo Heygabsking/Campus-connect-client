@@ -11,6 +11,7 @@ export default function CameraModal({ isOpen, onClose, onCapture, mode = 'photo'
   const [previewUrl, setPreviewUrl] = useState(null);
   const [capturedFile, setCaptured] = useState(null);
   const [loading, setLoading]       = useState(false);
+  const [facingMode, setFacingMode] = useState('user'); // 'user' (front) or 'environment' (back)
 
   const videoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -28,12 +29,19 @@ export default function CameraModal({ isOpen, onClose, onCapture, mode = 'photo'
       stopCamera();
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isOpen, mode]);
+  }, [isOpen, mode, facingMode]);
 
   const startCamera = async () => {
+    // Stop any currently running stream to prevent lock
+    stopCamera();
+
     try {
       const constraints = {
-        video: { facingMode: 'user', width: 640, height: 480 },
+        video: { 
+          facingMode: facingMode,
+          width: { ideal: 1920 }, // High quality
+          height: { ideal: 1080 }
+        },
         audio: mode === 'video'
       };
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -42,8 +50,21 @@ export default function CameraModal({ isOpen, onClose, onCapture, mode = 'photo'
         videoRef.current.srcObject = mediaStream;
       }
     } catch (err) {
-      toast.error('Could not access camera. Please check permissions.');
-      onClose();
+      toast.error('Could not access high quality camera. Trying lower quality...');
+      try {
+        // Fallback to basic settings if high-res fails
+        const fallbackStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: facingMode },
+          audio: mode === 'video'
+        });
+        setStream(fallbackStream);
+        if (videoRef.current) {
+          videoRef.current.srcObject = fallbackStream;
+        }
+      } catch (fallbackErr) {
+        toast.error('Could not access camera. Please check permissions.');
+        onClose();
+      }
     }
   };
 
@@ -64,6 +85,10 @@ export default function CameraModal({ isOpen, onClose, onCapture, mode = 'photo'
     if (timerRef.current) clearInterval(timerRef.current);
   };
 
+  const toggleCameraFacing = () => {
+    setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+  };
+
   const capturePhoto = () => {
     if (!videoRef.current) return;
     const video = videoRef.current;
@@ -72,9 +97,11 @@ export default function CameraModal({ isOpen, onClose, onCapture, mode = 'photo'
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d');
     
-    // Draw mirrored image if facing user
-    ctx.translate(canvas.width, 0);
-    ctx.scale(-1, 1);
+    // Draw mirrored image only if facing user (front camera)
+    if (facingMode === 'user') {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     canvas.toBlob((blob) => {
@@ -118,9 +145,9 @@ export default function CameraModal({ isOpen, onClose, onCapture, mode = 'photo'
 
     timerRef.current = setInterval(() => {
       setSeconds(prev => {
-        if (prev >= 15) { // Max 15s for stories/reels
+        if (prev >= 60) { // Max 60 seconds (1 minute)
           stopRecording();
-          return 15;
+          return 60;
         }
         return prev + 1;
       });
@@ -161,14 +188,39 @@ export default function CameraModal({ isOpen, onClose, onCapture, mode = 'photo'
 
         <div className="camera-viewport-container">
           {!previewUrl ? (
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="camera-video-stream"
-              style={{ transform: 'scaleX(-1)' }} // Mirror view for user
-            />
+            <>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="camera-video-stream"
+                style={{ transform: facingMode === 'user' ? 'scaleX(-1)' : 'none' }} // Mirror front view, normal back view
+              />
+              <button 
+                onClick={toggleCameraFacing} 
+                className="camera-switch-btn"
+                style={{
+                  position: 'absolute',
+                  top: '16px',
+                  right: '16px',
+                  background: 'rgba(0, 0, 0, 0.6)',
+                  border: 'none',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  width: '36px',
+                  height: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  zIndex: 15
+                }}
+                title="Switch Camera"
+              >
+                <RefreshCw size={18} />
+              </button>
+            </>
           ) : (
             mode === 'photo' ? (
               <img src={previewUrl} alt="Preview" className="camera-preview" />
@@ -180,7 +232,7 @@ export default function CameraModal({ isOpen, onClose, onCapture, mode = 'photo'
           {recording && (
             <div className="camera-timer">
               <div className="pulse-dot" />
-              <span>00:{seconds < 10 ? `0${seconds}` : seconds} / 00:15</span>
+              <span>00:{seconds < 10 ? `0${seconds}` : seconds} / 01:00</span>
             </div>
           )}
         </div>
@@ -194,7 +246,7 @@ export default function CameraModal({ isOpen, onClose, onCapture, mode = 'photo'
             ) : (
               !recording ? (
                 <button onClick={startRecording} className="record-btn-start">
-                  <Video size={24} /> Record (Max 15s)
+                  <Video size={24} /> Record (Max 60s)
                 </button>
               ) : (
                 <button onClick={stopRecording} className="record-btn-stop">
