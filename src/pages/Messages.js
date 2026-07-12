@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useRef } from 'react';
-import { Send, Image, Video, Mic, Square, Trash2, Search, X, ChevronLeft } from 'lucide-react';
+import { Send, Image, Video, Mic, Trash2, Search, X, ChevronLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api, { getMediaUrl } from '../utils/api';
 import toast from 'react-hot-toast';
@@ -22,6 +22,7 @@ export default function Messages() {
 
   // Voice Note Recorder states
   const [recording, setRecording] = useState(false);
+  const [recordingLocked, setRecordingLocked] = useState(false);
   const [voiceBlob, setVoiceBlob] = useState(null);
   const [voiceSeconds, setVoiceSeconds] = useState(0);
   const [mediaFile, setMediaFile] = useState(null);
@@ -30,6 +31,11 @@ export default function Messages() {
   const audioChunksRef = useRef([]);
   const recordingTimerRef = useRef(null);
   const messageEndRef = useRef(null);
+  const touchStartXRef = useRef(0);
+  const isHoldRecordingRef = useRef(false);
+  const autoSendRef = useRef(false);
+  const voiceSecondsRef = useRef(0);
+  const streamRef = useRef(null);
 
   useEffect(() => {
     fetchChats();
@@ -104,10 +110,39 @@ export default function Messages() {
     }
   };
 
+  // Helper to upload audio directly
+  const sendAudioBlobDirectly = async (audioBlob) => {
+    if (!activeChat) return;
+    setSendingMessage(true);
+    try {
+      const form = new FormData();
+      form.append('chatId', activeChat._id);
+      const audioFile = new File([audioBlob], `voice-${Date.now()}.webm`, { type: 'audio/webm' });
+      form.append('media', audioFile);
+
+      const { data } = await api.post('/chats/message', form, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      setMessages(prev => [...prev, data]);
+      setChats(prev => {
+        const remaining = prev.filter(c => c._id !== activeChat._id);
+        const updatedChat = { ...activeChat, lastMessage: data };
+        return [updatedChat, ...remaining];
+      });
+      toast.success('Voice message sent');
+    } catch (err) {
+      toast.error('Voice note failed to send');
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
   // Start voice recording
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       audioChunksRef.current = [];
       
       const mediaRecorder = new MediaRecorder(stream);
@@ -119,19 +154,40 @@ export default function Messages() {
         }
       };
 
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setVoiceBlob(audioBlob);
         stream.getTracks().forEach(track => track.stop());
+
+        if (voiceSecondsRef.current < 1) {
+          toast.error('Recording too short');
+          setRecordingLocked(false);
+          isHoldRecordingRef.current = false;
+          return;
+        }
+
+        if (autoSendRef.current) {
+          autoSendRef.current = false;
+          await sendAudioBlobDirectly(audioBlob);
+        } else {
+          setVoiceBlob(audioBlob);
+        }
+        
+        setRecordingLocked(false);
       };
 
       mediaRecorder.start();
       setRecording(true);
+      setRecordingLocked(false);
       setVoiceSeconds(0);
+      voiceSecondsRef.current = 0;
       setVoiceBlob(null);
 
       recordingTimerRef.current = setInterval(() => {
-        setVoiceSeconds(prev => prev + 1);
+        setVoiceSeconds(prev => {
+          const nextSec = prev + 1;
+          voiceSecondsRef.current = nextSec;
+          return nextSec;
+        });
       }, 1000);
     } catch (err) {
       toast.error('Microphone access denied');
@@ -140,16 +196,92 @@ export default function Messages() {
 
   // Stop voice recording
   const stopRecording = () => {
-    if (mediaRecorderRef.current && recording) {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
       setRecording(false);
       if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
     }
   };
 
-  const cancelVoiceNote = () => {
-    setVoiceBlob(null);
+  const cancelRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.onstop = null; 
+      mediaRecorderRef.current.stop();
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+    setRecording(false);
+    setRecordingLocked(false);
+    isHoldRecordingRef.current = false;
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
     setVoiceSeconds(0);
+    voiceSecondsRef.current = 0;
+    setVoiceBlob(null);
+    toast.success('Recording cancelled');
+  };
+
+  const stopRecordingAndSend = () => {
+    autoSendRef.current = true;
+    stopRecording();
+  };
+
+  // Hold recording touch event listeners
+  const handleTouchStart = (e) => {
+    if (recording || voiceBlob) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    touchStartXRef.current = touch.clientX;
+    isHoldRecordingRef.current = true;
+    startRecording();
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isHoldRecordingRef.current || recordingLocked) return;
+    const touch = e.touches[0];
+    const diffX = touchStartXRef.current - touch.clientX;
+    if (diffX > 45) { 
+      setRecordingLocked(true);
+      toast.success('Hands-free lock active 🔒');
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    e.preventDefault();
+    if (!isHoldRecordingRef.current) return;
+    isHoldRecordingRef.current = false;
+
+    if (recordingLocked) {
+      return;
+    }
+    stopRecordingAndSend();
+  };
+
+  // Hold recording mouse event listeners
+  const handleMouseDown = (e) => {
+    if (recording || voiceBlob) return;
+    e.preventDefault();
+    touchStartXRef.current = e.clientX;
+    isHoldRecordingRef.current = true;
+    startRecording();
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isHoldRecordingRef.current || recordingLocked) return;
+    const diffX = touchStartXRef.current - e.clientX;
+    if (diffX > 45) {
+      setRecordingLocked(true);
+      toast.success('Hands-free lock active 🔒');
+    }
+  };
+
+  const handleMouseUp = (e) => {
+    e.preventDefault();
+    if (!isHoldRecordingRef.current) return;
+    isHoldRecordingRef.current = false;
+
+    if (recordingLocked) return;
+    stopRecordingAndSend();
   };
 
   const handleKeyDown = (e) => {
@@ -335,73 +467,121 @@ export default function Messages() {
                 <div className="attachment-preview audio-preview">
                   <span>🎙️ Voice Note Preview ({formatTime(voiceSeconds)})</span>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={cancelVoiceNote} className="close-btn" style={{ color: 'var(--danger)' }}><Trash2 size={16} /></button>
+                    <button onClick={cancelRecording} className="close-btn" style={{ color: 'var(--danger)' }}><Trash2 size={16} /></button>
                   </div>
                 </div>
               )}
 
               <form onSubmit={handleSend} className="input-form">
                 <div className="ig-pill-input">
-                  {/* File uploads */}
-                  <label className="ig-input-icon-btn" title="Attach Image">
-                    <Image size={20} />
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={e => { setMediaFile(e.target.files[0]); setVoiceBlob(null); }} 
-                      style={{ display: 'none' }} 
-                    />
-                  </label>
-                  <label className="ig-input-icon-btn" title="Attach Video">
-                    <Video size={20} />
-                    <input 
-                      type="file" 
-                      accept="video/*" 
-                      onChange={e => { setMediaFile(e.target.files[0]); setVoiceBlob(null); }} 
-                      style={{ display: 'none' }} 
-                    />
-                  </label>
-
-                  {/* Voice Note controls */}
-                  {!recording ? (
-                    !voiceBlob && (
-                      <button 
-                        type="button" 
-                        onClick={startRecording} 
-                        className="ig-input-icon-btn"
-                        title="Record voice note"
-                      >
-                        <Mic size={20} />
-                      </button>
+                  {recording ? (
+                    recordingLocked ? (
+                      <div className="recording-locked-container" style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                        <button 
+                          type="button" 
+                          onClick={cancelRecording} 
+                          className="ig-trash-btn"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
+                          title="Discard recording"
+                        >
+                          <Trash2 size={20} color="var(--danger)" />
+                        </button>
+                        <div className="recording-status" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff' }}>
+                          <span className="recording-dot pulsing" />
+                          <span style={{ fontSize: '14px', fontWeight: '600' }}>Recording ({formatTime(voiceSeconds)})</span>
+                        </div>
+                        <button 
+                          type="button" 
+                          onClick={stopRecordingAndSend} 
+                          className="ig-send-btn active"
+                          style={{ background: 'none', border: 'none', color: '#3897f0', fontWeight: '700', cursor: 'pointer' }}
+                          title="Send voice note"
+                        >
+                          <Send size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="recording-holding-container" style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                        <div className="recording-status" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff' }}>
+                          <span className="recording-dot pulsing" />
+                          <span style={{ fontSize: '14px' }}>{formatTime(voiceSeconds)}</span>
+                        </div>
+                        <div className="swipe-instruction" style={{ color: '#8e8e8e', fontSize: '12px' }}>
+                          ← Slide left to lock
+                        </div>
+                        <button
+                          type="button"
+                          className="ig-input-icon-btn recording-mic"
+                          onMouseDown={handleMouseDown}
+                          onMouseMove={handleMouseMove}
+                          onMouseUp={handleMouseUp}
+                          onTouchStart={handleTouchStart}
+                          onTouchMove={handleTouchMove}
+                          onTouchEnd={handleTouchEnd}
+                          title="Recording..."
+                        >
+                          <Mic size={20} />
+                        </button>
+                      </div>
                     )
                   ) : (
-                    <button 
-                      type="button" 
-                      onClick={stopRecording} 
-                      className="ig-input-icon-btn recording-mic"
-                      title="Stop recording"
-                    >
-                      <Square size={16} />
-                    </button>
+                    <>
+                      {/* File uploads */}
+                      <label className="ig-input-icon-btn" title="Attach Image">
+                        <Image size={20} />
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={e => { setMediaFile(e.target.files[0]); setVoiceBlob(null); }} 
+                          style={{ display: 'none' }} 
+                        />
+                      </label>
+                      <label className="ig-input-icon-btn" title="Attach Video">
+                        <Video size={20} />
+                        <input 
+                          type="file" 
+                          accept="video/*" 
+                          onChange={e => { setMediaFile(e.target.files[0]); setVoiceBlob(null); }} 
+                          style={{ display: 'none' }} 
+                        />
+                      </label>
+
+                      {/* Mic Button with Hold to Record listeners */}
+                      {!voiceBlob && (
+                        <button 
+                          type="button" 
+                          className="ig-input-icon-btn"
+                          onMouseDown={handleMouseDown}
+                          onMouseMove={handleMouseMove}
+                          onMouseUp={handleMouseUp}
+                          onTouchStart={handleTouchStart}
+                          onTouchMove={handleTouchMove}
+                          onTouchEnd={handleTouchEnd}
+                          title="Hold to record, slide left to lock"
+                        >
+                          <Mic size={20} />
+                        </button>
+                      )}
+
+                      <textarea
+                        value={text}
+                        onChange={e => setText(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Message..."
+                        disabled={voiceBlob}
+                        rows={1}
+                      />
+
+                      <button 
+                        type="submit" 
+                        className="ig-send-btn" 
+                        disabled={sendingMessage || (!text.trim() && !mediaFile && !voiceBlob)}
+                        title="Send message"
+                      >
+                        <Send size={14} />
+                      </button>
+                    </>
                   )}
-
-                  <textarea
-                    value={text}
-                    onChange={e => setText(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={recording ? "Recording audio note..." : "Message..."}
-                    disabled={recording || voiceBlob}
-                    rows={1}
-                  />
-
-                  <button 
-                    type="submit" 
-                    className="ig-send-btn" 
-                    disabled={sendingMessage || (!text.trim() && !mediaFile && !voiceBlob)}
-                    title="Send message"
-                  >
-                    <Send size={14} />
-                  </button>
                 </div>
               </form>
             </div>
