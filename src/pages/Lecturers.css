@@ -333,25 +333,23 @@
   opacity: 0.8;
 }
 
+.modal-overlay {
+  align-items: flex-start !important;
+  overflow-y: auto !important;
+  padding: 40px 20px !important;
+}
+
 .modal-content, 
 .lecturer-details-modal {
-  max-height: 90vh;
-  overflow-y: auto;
-  overflow-x: hidden;
+  max-height: none !important;
+  overflow-y: visible !important;
+  overflow-x: hidden !important;
 }
 
 .lecturer-details-modal .modal-header {
-  position: sticky;
-  top: -24px; /* Offset the modal-content card's default padding */
-  background: var(--card, #fff);
-  z-index: 100;
-  padding: 16px 0;
-  margin-left: -24px;
-  margin-right: -24px;
-  padding-left: 24px;
-  padding-right: 24px;
   border-bottom: 1.5px solid var(--border);
   margin-bottom: 20px !important;
+  padding-bottom: 12px;
 }
 
 @media (max-width: 768px) {
