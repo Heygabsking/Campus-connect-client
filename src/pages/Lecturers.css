@@ -305,6 +305,11 @@
   opacity: 0.8;
 }
 
+.modal-content, 
+.lecturer-details-modal {
+  overflow-x: hidden;
+}
+
 .lecturer-details-modal .modal-header {
   position: sticky;
   top: -30px; /* Offset the modal-content card's default padding */

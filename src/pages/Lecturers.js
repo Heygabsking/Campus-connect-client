@@ -228,7 +228,7 @@ export default function Lecturers() {
 
       {/* Lecturer Profile Detail Modal */}
       {activeLecturerDetails && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setActiveDetails(null); }}>
           <div className="modal-content card lecturer-details-modal">
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
               <h2>{activeLecturerDetails.lecturer.name}</h2>
@@ -347,7 +347,7 @@ export default function Lecturers() {
 
       {/* Add Lecturer Modal */}
       {showAddLecturer && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowAddLecturer(false); }}>
           <div className="modal-content card" style={{ maxWidth: '400px' }}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
               <h3>Add Lecturer Profile</h3>
@@ -388,7 +388,7 @@ export default function Lecturers() {
 
       {/* Add Review Modal */}
       {showReviewForm && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowReviewForm(false); }}>
           <div className="modal-content card" style={{ maxWidth: '400px' }}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
               <h3>Write a Review</h3>
@@ -462,7 +462,7 @@ export default function Lecturers() {
 
       {/* Upload Past Paper Modal */}
       {showPaperForm && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowPaperForm(false); }}>
           <div className="modal-content card" style={{ maxWidth: '400px' }}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
               <h3>Upload Past Paper</h3>
@@ -497,7 +497,7 @@ export default function Lecturers() {
       )}
       {/* Edit Lecturer Modal */}
       {showEditLecturer && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowEditLecturer(false); }}>
           <div className="modal-content card" style={{ maxWidth: '400px' }}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
               <h3>Edit Lecturer Profile</h3>
