@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Heart, MessageCircle, Send, Video, Upload, X, Trash2 } from 'lucide-react';
+import { Heart, MessageCircle, Send, Video, Upload, X, Trash2, Volume2, VolumeX } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api, { getMediaUrl } from '../utils/api';
 import CameraModal from '../components/CameraModal';
@@ -10,6 +10,8 @@ export default function Reels() {
   const { user } = useAuth();
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [isMuted, setIsMuted] = useState(true);
 
   // Creation dialogs
   const [showCreate, setShowCreate] = useState(false);
@@ -166,7 +168,7 @@ export default function Reels() {
                   src={getMediaUrl(r.videoUrl)}
                   loop
                   autoPlay
-                  muted
+                  muted={isMuted}
                   onClick={() => togglePlayback(r._id)}
                   className="reel-video"
                 />
@@ -191,6 +193,10 @@ export default function Reels() {
                   <button onClick={() => openComments(r)} className="action-btn">
                     <MessageCircle size={24} />
                     <span>{r.comments?.length || 0}</span>
+                  </button>
+                  <button onClick={() => setIsMuted(!isMuted)} className="action-btn volume-btn" title={isMuted ? "Unmute" : "Mute"}>
+                    {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+                    <span style={{ fontSize: '10px' }}>{isMuted ? "Mute" : "Sound"}</span>
                   </button>
                   {((r.author?._id === user?._id) || (user?.role === 'admin')) && (
                     <button onClick={() => handleDeleteReel(r._id)} className="action-btn delete-btn" style={{ color: 'var(--danger)', marginTop: '8px' }}>
