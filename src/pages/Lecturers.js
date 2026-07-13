@@ -12,7 +12,7 @@ export default function Lecturers() {
   
   // Modals
   const [showAddLecturer, setShowAddLecturer] = useState(false);
-  const [newLecturer, setNewLecturer] = useState({ name: '', department: 'Computer Science' });
+  const [newLecturer, setNewLecturer] = useState({ name: '', department: 'Chandaria School Of Business' });
   const [activeLecturerDetails, setActiveDetails] = useState(null);
   
   // Review creation form
@@ -47,7 +47,7 @@ export default function Lecturers() {
       setLecturers([data, ...lecturers]);
       toast.success('Lecturer profile created');
       setShowAddLecturer(false);
-      setNewLecturer({ name: '', department: 'Computer Science' });
+      setNewLecturer({ name: '', department: 'Chandaria School Of Business' });
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create profile');
     }
@@ -126,7 +126,7 @@ export default function Lecturers() {
     <div className="lecturers-page page-fade-in">
       <div className="lecturers-header card">
         <div className="header-info">
-          <h1>🏫 Lecturer Reviews & Past Papers</h1>
+          <h1> Lecturer Reviews & Past Papers</h1>
           <p>Get guidance from peers and browse study resources</p>
         </div>
         <button onClick={() => setShowAddLecturer(true)} className="btn-primary add-lecturer-trigger">
@@ -304,11 +304,12 @@ export default function Lecturers() {
                   onChange={e => setNewLecturer({ ...newLecturer, department: e.target.value })}
                   style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1.5px solid var(--border)' }}
                 >
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="Information Technology">Information Technology</option>
-                  <option value="Business Administration">Business Administration</option>
-                  <option value="International Relations">International Relations</option>
-                  <option value="Journalism & Media">Journalism & Media</option>
+                  <option value="Chandaria School Of Business">Chandaria School Of Business</option>
+                  <option value="School of Science and Technology">School of Science and Technology</option>
+                  <option value="School of Humanities and Social Sciences">School of Humanities and Social Sciences</option>
+                  <option value="School of Communication and Creative Arts">School of Communication and Creative Arts</option>
+                  <option value="School of Pharmacy and Health Sciences">School of Pharmacy and Health Sciences</option>
+                  <option value="School of Graduate Studies">School of Graduate Studies</option>
                 </select>
               </div>
               <button type="submit" className="btn-primary" style={{ marginTop: '8px' }}>
