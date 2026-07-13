@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Star, ThumbsUp, ThumbsDown, Upload, Plus, X, Search, FileText, Download } from 'lucide-react';
 import api, { getMediaUrl } from '../utils/api';
 import toast from 'react-hot-toast';
-import { useAuth } from '../context/AuthContext';
 import './Lecturers.css';
 
 export default function Lecturers() {
@@ -11,7 +10,6 @@ export default function Lecturers() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   
-  const { user } = useAuth();
   const [showEditLecturer, setShowEditLecturer] = useState(false);
   const [editLecturerData, setEditLecturerData] = useState({ _id: '', name: '', department: '' });
 
@@ -238,24 +236,22 @@ export default function Lecturers() {
             </div>
             <p className="dept-label">{activeLecturerDetails.lecturer.department}</p>
 
-            {user?.role === 'admin' && (
-              <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', marginTop: '-8px' }}>
-                <button 
-                  onClick={() => handleOpenEdit(activeLecturerDetails.lecturer)} 
-                  className="btn-outline" 
-                  style={{ padding: '6px 12px', fontSize: '12px' }}
-                >
-                  Edit Profile
-                </button>
-                <button 
-                  onClick={() => handleDeleteLecturer(activeLecturerDetails.lecturer._id)} 
-                  className="btn-outline" 
-                  style={{ padding: '6px 12px', fontSize: '12px', color: 'var(--danger)', borderColor: 'var(--danger)' }}
-                >
-                  Delete Profile
-                </button>
-              </div>
-            )}
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', marginTop: '-8px' }}>
+              <button 
+                onClick={() => handleOpenEdit(activeLecturerDetails.lecturer)} 
+                className="btn-outline" 
+                style={{ padding: '6px 12px', fontSize: '12px' }}
+              >
+                Edit Profile
+              </button>
+              <button 
+                onClick={() => handleDeleteLecturer(activeLecturerDetails.lecturer._id)} 
+                className="btn-outline" 
+                style={{ padding: '6px 12px', fontSize: '12px', color: 'var(--danger)', borderColor: 'var(--danger)' }}
+              >
+                Delete Profile
+              </button>
+            </div>
 
             <div className="rating-summary-row card">
               <div className="summary-col">
