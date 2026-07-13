@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Star, ThumbsUp, ThumbsDown, Upload, Plus, X, Search, FileText, Download } from 'lucide-react';
 import api, { getMediaUrl } from '../utils/api';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 import './Lecturers.css';
 
 export default function Lecturers() {
@@ -10,6 +11,10 @@ export default function Lecturers() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   
+  const { user } = useAuth();
+  const [showEditLecturer, setShowEditLecturer] = useState(false);
+  const [editLecturerData, setEditLecturerData] = useState({ _id: '', name: '', department: '' });
+
   // Modals
   const [showAddLecturer, setShowAddLecturer] = useState(false);
   const [newLecturer, setNewLecturer] = useState({ name: '', department: 'Chandaria School Of Business' });
@@ -59,6 +64,53 @@ export default function Lecturers() {
       setActiveDetails(data);
     } catch {
       toast.error('Failed to load lecturer profile');
+    }
+  };
+
+  const handleDeleteLecturer = async (lecturerId) => {
+    if (!window.confirm("Are you sure you want to delete this lecturer profile? This will also delete all reviews and past papers for this lecturer.")) return;
+    try {
+      await api.delete(`/lecturers/${lecturerId}`);
+      toast.success('Lecturer profile deleted');
+      setLecturers(prev => prev.filter(l => l._id !== lecturerId));
+      setActiveDetails(null);
+    } catch (err) {
+      toast.error('Failed to delete profile');
+    }
+  };
+
+  const handleOpenEdit = (lecturer) => {
+    setEditLecturerData({
+      _id: lecturer._id,
+      name: lecturer.name,
+      department: lecturer.department
+    });
+    setShowEditLecturer(true);
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    try {
+      const { data } = await api.put(`/lecturers/${editLecturerData._id}`, {
+        name: editLecturerData.name,
+        department: editLecturerData.department
+      });
+      toast.success('Lecturer profile updated');
+      
+      // Update local list
+      setLecturers(prev => prev.map(l => l._id === data._id ? { ...l, name: data.name, department: data.department } : l));
+      
+      // Update active details
+      if (activeLecturerDetails && activeLecturerDetails.lecturer._id === data._id) {
+        setActiveDetails(prev => ({
+          ...prev,
+          lecturer: data
+        }));
+      }
+      
+      setShowEditLecturer(false);
+    } catch (err) {
+      toast.error('Failed to update profile');
     }
   };
 
@@ -184,8 +236,26 @@ export default function Lecturers() {
               <h2>{activeLecturerDetails.lecturer.name}</h2>
               <button onClick={() => setActiveDetails(null)} className="close-btn"><X size={20} /></button>
             </div>
-            
             <p className="dept-label">{activeLecturerDetails.lecturer.department}</p>
+
+            {user?.role === 'admin' && (
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', marginTop: '-8px' }}>
+                <button 
+                  onClick={() => handleOpenEdit(activeLecturerDetails.lecturer)} 
+                  className="btn-outline" 
+                  style={{ padding: '6px 12px', fontSize: '12px' }}
+                >
+                  Edit Profile
+                </button>
+                <button 
+                  onClick={() => handleDeleteLecturer(activeLecturerDetails.lecturer._id)} 
+                  className="btn-outline" 
+                  style={{ padding: '6px 12px', fontSize: '12px', color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                >
+                  Delete Profile
+                </button>
+              </div>
+            )}
 
             <div className="rating-summary-row card">
               <div className="summary-col">
@@ -424,6 +494,46 @@ export default function Lecturers() {
               </div>
               <button type="submit" className="btn-primary" style={{ marginTop: '8px' }} disabled={uploadingPaper}>
                 {uploadingPaper ? 'Uploading...' : 'Upload Paper'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Edit Lecturer Modal */}
+      {showEditLecturer && (
+        <div className="modal-overlay">
+          <div className="modal-content card" style={{ maxWidth: '400px' }}>
+            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h3>Edit Lecturer Profile</h3>
+              <button onClick={() => setShowEditLecturer(false)} className="close-btn"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className="field">
+                <label>Lecturer Name</label>
+                <input
+                  value={editLecturerData.name}
+                  onChange={e => setEditLecturerData({ ...editLecturerData, name: e.target.value })}
+                  placeholder="e.g. Dr. John Doe"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label>Department</label>
+                <select
+                  value={editLecturerData.department}
+                  onChange={e => setEditLecturerData({ ...editLecturerData, department: e.target.value })}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1.5px solid var(--border)' }}
+                >
+                  <option value="Chandaria School Of Business">Chandaria School Of Business</option>
+                  <option value="School of Science and Technology">School of Science and Technology</option>
+                  <option value="School of Humanities and Social Sciences">School of Humanities and Social Sciences</option>
+                  <option value="School of Communication and Creative Arts">School of Communication and Creative Arts</option>
+                  <option value="School of Pharmacy and Health Sciences">School of Pharmacy and Health Sciences</option>
+                  <option value="School of Graduate Studies">School of Graduate Studies</option>
+                </select>
+              </div>
+              <button type="submit" className="btn-primary" style={{ marginTop: '8px' }}>
+                Save Changes
               </button>
             </form>
           </div>

@@ -305,6 +305,20 @@
   opacity: 0.8;
 }
 
+.lecturer-details-modal .modal-header {
+  position: sticky;
+  top: -30px; /* Offset the modal-content card's default padding */
+  background: var(--card, #fff);
+  z-index: 100;
+  padding: 16px 0;
+  margin-left: -30px;
+  margin-right: -30px;
+  padding-left: 30px;
+  padding-right: 30px;
+  border-bottom: 1.5px solid var(--border);
+  margin-bottom: 20px !important;
+}
+
 @media (max-width: 768px) {
   .lecturers-page {
     padding: 16px 8px 80px;
