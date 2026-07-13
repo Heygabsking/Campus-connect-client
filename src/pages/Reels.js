@@ -25,12 +25,52 @@ export default function Reels() {
   const [commentsList, setCommentsList] = useState([]);
   const [commentText, setCommentText] = useState('');
 
+  const [activeReelId, setActiveReelId] = useState(null);
+
   // Video playback
   const videoRefs = useRef({});
 
   useEffect(() => {
     fetchReels();
   }, []);
+
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.6
+    };
+
+    const observerCallback = (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const reelId = entry.target.dataset.reelId;
+          setActiveReelId(reelId);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+    const cards = document.querySelectorAll('.reel-card');
+    cards.forEach(card => observer.observe(card));
+
+    return () => {
+      cards.forEach(card => observer.unobserve(card));
+    };
+  }, [reels]);
+
+  useEffect(() => {
+    Object.keys(videoRefs.current).forEach(id => {
+      const video = videoRefs.current[id];
+      if (video) {
+        if (id === activeReelId) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      }
+    });
+  }, [activeReelId]);
 
   const fetchReels = async () => {
     try {
@@ -162,13 +202,13 @@ export default function Reels() {
           {reels.map((r) => {
             const isLiked = r.likes?.includes(user?._id);
             return (
-              <div key={r._id} className="reel-card">
+              <div key={r._id} className="reel-card" data-reel-id={r._id}>
                 <video
                   ref={el => videoRefs.current[r._id] = el}
                   src={getMediaUrl(r.videoUrl)}
                   loop
                   autoPlay
-                  muted={isMuted}
+                  muted={r._id !== activeReelId || isMuted}
                   onClick={() => togglePlayback(r._id)}
                   className="reel-video"
                 />

@@ -49,6 +49,15 @@
   align-items: center;
   gap: 24px;
   width: 100%;
+  height: calc(100vh - 150px);
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.reels-feed-container::-webkit-scrollbar {
+  display: none;
 }
 
 .reel-card {
@@ -63,6 +72,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
 }
 
 .reel-video {
