@@ -461,65 +461,67 @@ export default function Lecturers() {
               <h3>Write a Review</h3>
               <button onClick={() => setShowReviewForm(false)} className="close-btn"><X size={20} /></button>
             </div>
-            <form onSubmit={handleAddReview} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div className="field">
-                <label>Course Code</label>
-                <input
-                  value={reviewForm.courseCode}
-                  onChange={e => setReviewForm({ ...reviewForm, courseCode: e.target.value.toUpperCase() })}
-                  placeholder="e.g. APT 3040"
-                  required
-                />
+            <form onSubmit={handleAddReview} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '2px' }}>
+                <div className="field" style={{ flex: 1, marginBottom: 0 }}>
+                  <label>Course Code</label>
+                  <input
+                    value={reviewForm.courseCode}
+                    onChange={e => setReviewForm({ ...reviewForm, courseCode: e.target.value.toUpperCase() })}
+                    placeholder="e.g. APT 3040"
+                    required
+                  />
+                </div>
+                <div className="field" style={{ flex: 1, marginBottom: 0 }}>
+                  <label>Rating (1 - 5 Stars)</label>
+                  <select
+                    value={reviewForm.rating}
+                    onChange={e => setReviewForm({ ...reviewForm, rating: Number(e.target.value) })}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1.5px solid var(--border)' }}
+                  >
+                    <option value={5}>5 Stars (Excellent)</option>
+                    <option value={4}>4 Stars (Good)</option>
+                    <option value={3}>3 Stars (Average)</option>
+                    <option value={2}>2 Stars (Poor)</option>
+                    <option value={1}>1 Star (Terrible)</option>
+                  </select>
+                </div>
               </div>
-              <div className="field">
-                <label>Rating (1 - 5 Stars)</label>
-                <select
-                  value={reviewForm.rating}
-                  onChange={e => setReviewForm({ ...reviewForm, rating: Number(e.target.value) })}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1.5px solid var(--border)' }}
-                >
-                  <option value={5}>5 Stars (Excellent)</option>
-                  <option value={4}>4 Stars (Good)</option>
-                  <option value={3}>3 Stars (Average)</option>
-                  <option value={2}>2 Stars (Poor)</option>
-                  <option value={1}>1 Star (Terrible)</option>
-                </select>
-              </div>
-              <div className="field">
-                <label style={{ display: 'block', marginBottom: '6px' }}>Would you recommend this lecturer?</label>
+              <div className="field" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                <label style={{ margin: 0 }}>Would you recommend this lecturer?</label>
                 <div style={{ display: 'flex', gap: '16px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
                     <input
                       type="radio"
                       checked={reviewForm.recommend === true}
                       onChange={() => setReviewForm({ ...reviewForm, recommend: true })}
-                      style={{ width: 'auto' }}
+                      style={{ width: 'auto', margin: 0 }}
                     />
                     Yes
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
                     <input
                       type="radio"
                       checked={reviewForm.recommend === false}
                       onChange={() => setReviewForm({ ...reviewForm, recommend: false })}
-                      style={{ width: 'auto' }}
+                      style={{ width: 'auto', margin: 0 }}
                     />
                     No
                   </label>
                 </div>
               </div>
-              <div className="field">
+              <div className="field" style={{ marginBottom: '4px' }}>
                 <label>Your Feedback / Guidance</label>
                 <textarea
                   value={reviewForm.comment}
                   onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })}
                   placeholder="Share details about their grading, teaching style, attendance, exams..."
-                  rows={4}
+                  rows={3}
                   required
-                  style={{ resize: 'none' }}
+                  style={{ resize: 'none', height: '80px' }}
                 />
               </div>
-              <button type="submit" className="btn-primary" style={{ marginTop: '8px' }}>
+              <button type="submit" className="btn-primary" style={{ marginTop: '4px' }}>
                 Submit Review
               </button>
             </form>
@@ -611,65 +613,67 @@ export default function Lecturers() {
               <h3>Edit Review</h3>
               <button onClick={() => setEditingReviewId(null)} className="close-btn"><X size={20} /></button>
             </div>
-            <form onSubmit={handleSaveEditReview} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div className="field">
-                <label>Course Code</label>
-                <input
-                  value={editReviewForm.courseCode}
-                  onChange={e => setEditReviewForm({ ...editReviewForm, courseCode: e.target.value.toUpperCase() })}
-                  placeholder="e.g. APT 3040"
-                  required
-                />
+            <form onSubmit={handleSaveEditReview} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '2px' }}>
+                <div className="field" style={{ flex: 1, marginBottom: 0 }}>
+                  <label>Course Code</label>
+                  <input
+                    value={editReviewForm.courseCode}
+                    onChange={e => setEditReviewForm({ ...editReviewForm, courseCode: e.target.value.toUpperCase() })}
+                    placeholder="e.g. APT 3040"
+                    required
+                  />
+                </div>
+                <div className="field" style={{ flex: 1, marginBottom: 0 }}>
+                  <label>Rating (1 - 5 Stars)</label>
+                  <select
+                    value={editReviewForm.rating}
+                    onChange={e => setEditReviewForm({ ...editReviewForm, rating: Number(e.target.value) })}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1.5px solid var(--border)' }}
+                  >
+                    <option value={5}>5 Stars (Excellent)</option>
+                    <option value={4}>4 Stars (Good)</option>
+                    <option value={3}>3 Stars (Average)</option>
+                    <option value={2}>2 Stars (Poor)</option>
+                    <option value={1}>1 Star (Terrible)</option>
+                  </select>
+                </div>
               </div>
-              <div className="field">
-                <label>Rating (1 - 5 Stars)</label>
-                <select
-                  value={editReviewForm.rating}
-                  onChange={e => setEditReviewForm({ ...editReviewForm, rating: Number(e.target.value) })}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1.5px solid var(--border)' }}
-                >
-                  <option value={5}>5 Stars (Excellent)</option>
-                  <option value={4}>4 Stars (Good)</option>
-                  <option value={3}>3 Stars (Average)</option>
-                  <option value={2}>2 Stars (Poor)</option>
-                  <option value={1}>1 Star (Terrible)</option>
-                </select>
-              </div>
-              <div className="field">
-                <label style={{ display: 'block', marginBottom: '6px' }}>Would you recommend this lecturer?</label>
+              <div className="field" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                <label style={{ margin: 0 }}>Would you recommend this lecturer?</label>
                 <div style={{ display: 'flex', gap: '16px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
                     <input
                       type="radio"
                       checked={editReviewForm.recommend === true}
                       onChange={() => setEditReviewForm({ ...editReviewForm, recommend: true })}
-                      style={{ width: 'auto' }}
+                      style={{ width: 'auto', margin: 0 }}
                     />
                     Yes
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
                     <input
                       type="radio"
                       checked={editReviewForm.recommend === false}
                       onChange={() => setEditReviewForm({ ...editReviewForm, recommend: false })}
-                      style={{ width: 'auto' }}
+                      style={{ width: 'auto', margin: 0 }}
                     />
                     No
                   </label>
                 </div>
               </div>
-              <div className="field">
+              <div className="field" style={{ marginBottom: '4px' }}>
                 <label>Your Feedback / Guidance</label>
                 <textarea
                   value={editReviewForm.comment}
                   onChange={e => setEditReviewForm({ ...editReviewForm, comment: e.target.value })}
                   placeholder="Share details about their grading, teaching style, attendance, exams..."
-                  rows={4}
+                  rows={3}
                   required
-                  style={{ resize: 'none' }}
+                  style={{ resize: 'none', height: '80px' }}
                 />
               </div>
-              <button type="submit" className="btn-primary" style={{ marginTop: '8px' }}>
+              <button type="submit" className="btn-primary" style={{ marginTop: '4px' }}>
                 Save Review
               </button>
             </form>
