@@ -149,13 +149,25 @@ export default function Lecturers() {
       await api.put(`/lecturers/review/${editingReviewId}`, editReviewForm);
       toast.success('Review updated');
       setEditingReviewId(null);
-      
       if (activeLecturerDetails) {
         fetchLecturerDetails(activeLecturerDetails.lecturer._id);
       }
       fetchLecturers();
     } catch (err) {
       toast.error('Failed to update review');
+    }
+  };
+
+  const handleDeletePaper = async (paperId) => {
+    if (!window.confirm("Are you sure you want to delete this past paper?")) return;
+    try {
+      await api.delete(`/lecturers/paper/${paperId}`);
+      toast.success('Past paper deleted');
+      if (activeLecturerDetails) {
+        fetchLecturerDetails(activeLecturerDetails.lecturer._id);
+      }
+    } catch (err) {
+      toast.error('Failed to delete past paper');
     }
   };
 
@@ -399,9 +411,21 @@ export default function Lecturers() {
                             <span className="paper-uploader">Uploaded by @{p.uploadedBy?.username}</span>
                           </div>
                         </div>
-                        <a href={getMediaUrl(p.fileUrl)} target="_blank" rel="noreferrer" className="download-btn-link" title="Open/Download Paper">
-                          <Download size={16} />
-                        </a>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {(p.uploadedBy?._id === user?._id || user?.role === 'admin') && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePaper(p._id)}
+                              className="review-delete-btn"
+                              title="Delete Paper"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          )}
+                          <a href={getMediaUrl(p.fileUrl)} target="_blank" rel="noreferrer" className="download-btn-link" title="Open/Download Paper">
+                            <Download size={16} />
+                          </a>
+                        </div>
                       </div>
                     ))
                   )}
