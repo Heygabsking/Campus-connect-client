@@ -219,9 +219,6 @@
 }
 
 .review-rating-badge {
-  position: absolute;
-  right: 0;
-  top: 0;
   background: var(--primary-lt);
   padding: 4px 8px;
   border-radius: 12px;
@@ -230,6 +227,37 @@
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.review-edit-btn,
+.review-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.review-edit-btn {
+  color: var(--muted, #8e8e8e);
+}
+
+.review-edit-btn:hover {
+  background-color: var(--border, #eaeaea);
+  color: var(--primary, #003087);
+}
+
+.review-delete-btn {
+  color: var(--danger, #e03c3c);
+}
+
+.review-delete-btn:hover {
+  background-color: #fee2e2;
+  color: #ef4444;
 }
 
 .review-text {
@@ -307,19 +335,21 @@
 
 .modal-content, 
 .lecturer-details-modal {
+  max-height: 90vh;
+  overflow-y: auto;
   overflow-x: hidden;
 }
 
 .lecturer-details-modal .modal-header {
   position: sticky;
-  top: -30px; /* Offset the modal-content card's default padding */
+  top: -24px; /* Offset the modal-content card's default padding */
   background: var(--card, #fff);
   z-index: 100;
   padding: 16px 0;
-  margin-left: -30px;
-  margin-right: -30px;
-  padding-left: 30px;
-  padding-right: 30px;
+  margin-left: -24px;
+  margin-right: -24px;
+  padding-left: 24px;
+  padding-right: 24px;
   border-bottom: 1.5px solid var(--border);
   margin-bottom: 20px !important;
 }

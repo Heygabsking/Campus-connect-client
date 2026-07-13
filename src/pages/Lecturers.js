@@ -345,24 +345,22 @@ export default function Lecturers() {
                             <span className="review-course-code">Course: {r.courseCode}</span>
                           </div>
                           {(r.student?._id === user?._id || user?.role === 'admin') && (
-                            <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto', marginRight: '8px' }}>
+                            <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto', marginRight: '4px' }}>
                               <button 
                                 type="button"
                                 onClick={() => handleOpenEditReview(r)} 
-                                className="close-btn" 
+                                className="review-edit-btn" 
                                 title="Edit Review"
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted, #8e8e8e)', display: 'flex', padding: 4 }}
                               >
-                                <Edit2 size={13} />
+                                <Edit2 size={15} />
                               </button>
                               <button 
                                 type="button"
                                 onClick={() => handleDeleteReview(r._id)} 
-                                className="close-btn" 
+                                className="review-delete-btn" 
                                 title="Delete Review"
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger, #e03c3c)', display: 'flex', padding: 4 }}
                               >
-                                <Trash2 size={13} />
+                                <Trash2 size={15} />
                               </button>
                             </div>
                           )}
