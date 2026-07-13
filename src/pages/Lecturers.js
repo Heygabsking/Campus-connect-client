@@ -1,8 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from 'react';
-import { Star, ThumbsUp, ThumbsDown, Upload, Plus, X, Search, FileText, Download } from 'lucide-react';
+import { Star, ThumbsUp, ThumbsDown, Upload, Plus, X, Search, FileText, Download, Edit2, Trash2 } from 'lucide-react';
 import api, { getMediaUrl } from '../utils/api';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 import './Lecturers.css';
 
 export default function Lecturers() {
@@ -10,6 +11,7 @@ export default function Lecturers() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   
+  const { user } = useAuth();
   const [showEditLecturer, setShowEditLecturer] = useState(false);
   const [editLecturerData, setEditLecturerData] = useState({ _id: '', name: '', department: '' });
 
@@ -21,6 +23,10 @@ export default function Lecturers() {
   // Review creation form
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewForm, setReviewForm] = useState({ rating: 5, recommend: true, comment: '', courseCode: '' });
+
+  // Review editing form
+  const [editingReviewId, setEditingReviewId] = useState(null);
+  const [editReviewForm, setEditReviewForm] = useState({ rating: 5, recommend: true, comment: '', courseCode: '' });
 
   // Past paper upload form
   const [showPaperForm, setShowPaperForm] = useState(false);
@@ -109,6 +115,47 @@ export default function Lecturers() {
       setShowEditLecturer(false);
     } catch (err) {
       toast.error('Failed to update profile');
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm("Are you sure you want to delete your review?")) return;
+    try {
+      await api.delete(`/lecturers/review/${reviewId}`);
+      toast.success('Review deleted');
+      
+      if (activeLecturerDetails) {
+        fetchLecturerDetails(activeLecturerDetails.lecturer._id);
+      }
+      fetchLecturers();
+    } catch (err) {
+      toast.error('Failed to delete review');
+    }
+  };
+
+  const handleOpenEditReview = (r) => {
+    setEditingReviewId(r._id);
+    setEditReviewForm({
+      rating: r.rating,
+      recommend: r.recommend,
+      comment: r.comment,
+      courseCode: r.courseCode
+    });
+  };
+
+  const handleSaveEditReview = async (e) => {
+    e.preventDefault();
+    try {
+      await api.put(`/lecturers/review/${editingReviewId}`, editReviewForm);
+      toast.success('Review updated');
+      setEditingReviewId(null);
+      
+      if (activeLecturerDetails) {
+        fetchLecturerDetails(activeLecturerDetails.lecturer._id);
+      }
+      fetchLecturers();
+    } catch (err) {
+      toast.error('Failed to update review');
     }
   };
 
@@ -297,6 +344,28 @@ export default function Lecturers() {
                             <span className="review-username">@{r.student?.username}</span>
                             <span className="review-course-code">Course: {r.courseCode}</span>
                           </div>
+                          {(r.student?._id === user?._id || user?.role === 'admin') && (
+                            <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto', marginRight: '8px' }}>
+                              <button 
+                                type="button"
+                                onClick={() => handleOpenEditReview(r)} 
+                                className="close-btn" 
+                                title="Edit Review"
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted, #8e8e8e)', display: 'flex', padding: 4 }}
+                              >
+                                <Edit2 size={13} />
+                              </button>
+                              <button 
+                                type="button"
+                                onClick={() => handleDeleteReview(r._id)} 
+                                className="close-btn" 
+                                title="Delete Review"
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger, #e03c3c)', display: 'flex', padding: 4 }}
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          )}
                           <div className="review-rating-badge">
                             <Star size={12} fill="var(--accent)" color="var(--accent)" />
                             <span>{r.rating}</span>
@@ -530,6 +599,80 @@ export default function Lecturers() {
               </div>
               <button type="submit" className="btn-primary" style={{ marginTop: '8px' }}>
                 Save Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Review Modal */}
+      {editingReviewId && (
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setEditingReviewId(null); }}>
+          <div className="modal-content card" style={{ maxWidth: '400px' }}>
+            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h3>Edit Review</h3>
+              <button onClick={() => setEditingReviewId(null)} className="close-btn"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleSaveEditReview} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className="field">
+                <label>Course Code</label>
+                <input
+                  value={editReviewForm.courseCode}
+                  onChange={e => setEditReviewForm({ ...editReviewForm, courseCode: e.target.value.toUpperCase() })}
+                  placeholder="e.g. APT 3040"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label>Rating (1 - 5 Stars)</label>
+                <select
+                  value={editReviewForm.rating}
+                  onChange={e => setEditReviewForm({ ...editReviewForm, rating: Number(e.target.value) })}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1.5px solid var(--border)' }}
+                >
+                  <option value={5}>5 Stars (Excellent)</option>
+                  <option value={4}>4 Stars (Good)</option>
+                  <option value={3}>3 Stars (Average)</option>
+                  <option value={2}>2 Stars (Poor)</option>
+                  <option value={1}>1 Star (Terrible)</option>
+                </select>
+              </div>
+              <div className="field">
+                <label style={{ display: 'block', marginBottom: '6px' }}>Would you recommend this lecturer?</label>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      checked={editReviewForm.recommend === true}
+                      onChange={() => setEditReviewForm({ ...editReviewForm, recommend: true })}
+                      style={{ width: 'auto' }}
+                    />
+                    Yes
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      checked={editReviewForm.recommend === false}
+                      onChange={() => setEditReviewForm({ ...editReviewForm, recommend: false })}
+                      style={{ width: 'auto' }}
+                    />
+                    No
+                  </label>
+                </div>
+              </div>
+              <div className="field">
+                <label>Your Feedback / Guidance</label>
+                <textarea
+                  value={editReviewForm.comment}
+                  onChange={e => setEditReviewForm({ ...editReviewForm, comment: e.target.value })}
+                  placeholder="Share details about their grading, teaching style, attendance, exams..."
+                  rows={4}
+                  required
+                  style={{ resize: 'none' }}
+                />
+              </div>
+              <button type="submit" className="btn-primary" style={{ marginTop: '8px' }}>
+                Save Review
               </button>
             </form>
           </div>
