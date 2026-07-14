@@ -5,7 +5,7 @@ import api, { getMediaUrl } from '../utils/api';
 import PostCard from '../components/PostCard';
 import CameraModal from '../components/CameraModal';
 import toast from 'react-hot-toast';
-import { Image, Send, Plus, ChevronLeft, ChevronRight, X, Camera, Upload, Trash2 } from 'lucide-react';
+import { Image, Send, Plus, ChevronLeft, ChevronRight, X, Camera, Upload, Trash2, Heart } from 'lucide-react';
 import './Feed.css';
 
 export default function Feed() {
@@ -31,6 +31,44 @@ export default function Feed() {
   const [isPaused, setIsPaused]             = useState(false);
 
   const [floatingReactions, setFloatingReactions] = useState([]);
+  const [showReactionsTray, setShowReactionsTray] = useState(false);
+  const [storyReplyText, setStoryReplyText] = useState('');
+
+  const handleSendStoryReply = async (text, recipientId) => {
+    if (recipientId === user?._id) {
+      toast.error("You can't reply to your own story");
+      return;
+    }
+    try {
+      const { data: chat } = await api.post('/chats/find-or-create', { recipientId });
+      const form = new FormData();
+      form.append('chatId', chat._id);
+      form.append('text', `Replied to your story: "${text}"`);
+      await api.post('/chats/message', form);
+      toast.success('Reply sent!');
+    } catch {
+      toast.error('Failed to send reply');
+    }
+  };
+
+  const goToNextUserStories = () => {
+    if (activeUserStoryIdx < groupedStories.length - 1) {
+      const nextUserIdx = activeUserStoryIdx + 1;
+      setActiveUserStoryIdx(nextUserIdx);
+      setActiveStoryIdx(0);
+      markStoryAsViewed(groupedStories[nextUserIdx].stories[0]._id);
+    }
+  };
+
+  const goToPrevUserStories = () => {
+    if (activeUserStoryIdx > 0) {
+      const prevUserIdx = activeUserStoryIdx - 1;
+      const prevGroup = groupedStories[prevUserIdx];
+      setActiveUserStoryIdx(prevUserIdx);
+      setActiveStoryIdx(prevGroup.stories.length - 1);
+      markStoryAsViewed(prevGroup.stories[prevGroup.stories.length - 1]._id);
+    }
+  };
 
   const triggerFloatingEmoji = (emoji) => {
     const id = Date.now() + Math.random();
@@ -464,127 +502,215 @@ export default function Feed() {
       )}
 
       {/* Story Viewer Modal */}
-      {activeUserStoryIdx !== null && (
-        <div className="story-viewer-overlay">
-          <div className="story-viewer-container">
-            {/* Top progress indicators */}
-            <div className="story-progress-indicators">
-              {groupedStories[activeUserStoryIdx].stories.map((s, sIdx) => {
-                let fillWidth = '0%';
-                if (sIdx < activeStoryIdx) fillWidth = '100%';
-                
-                return (
-                  <div key={s._id} className="story-progress-bar">
-                    <div 
-                      className={`story-progress-fill ${sIdx === activeStoryIdx ? 'active' : ''}`}
-                      style={{ 
-                        width: sIdx === activeStoryIdx ? undefined : fillWidth,
-                        animationPlayState: (sIdx === activeStoryIdx && isPaused) ? 'paused' : 'running'
-                      }}
+      {activeUserStoryIdx !== null && (() => {
+        const currentGroup = groupedStories[activeUserStoryIdx];
+        const currentStory = currentGroup.stories[activeStoryIdx];
+        return (
+          <div className="story-viewer-overlay">
+            <div className="story-viewer-layout-wrapper">
+              
+              {/* Left Preview Card */}
+              {activeUserStoryIdx > 0 && (
+                <div className="story-preview-card left-preview" onClick={goToPrevUserStories}>
+                  <div className="preview-card-dimmer" />
+                  <img 
+                    src={getMediaUrl(groupedStories[activeUserStoryIdx - 1].stories[0].mediaUrl)} 
+                    alt="" 
+                    className="preview-media"
+                  />
+                  <div className="preview-avatar-wrapper">
+                    <img 
+                      src={getMediaUrl(groupedStories[activeUserStoryIdx - 1].user?.profilePhoto) || `https://ui-avatars.com/api/?name=${groupedStories[activeUserStoryIdx - 1].user?.username}&background=003087&color=fff`} 
+                      alt="" 
+                      className="avatar"
                     />
+                    <span>@{groupedStories[activeUserStoryIdx - 1].user?.username}</span>
                   </div>
-                );
-              })}
-            </div>
-
-            {/* Header info */}
-            <div className="story-viewer-header">
-              <div className="story-viewer-author">
-                <img
-                  src={getMediaUrl(groupedStories[activeUserStoryIdx].user?.profilePhoto) || `https://ui-avatars.com/api/?name=${groupedStories[activeUserStoryIdx].user?.username}&background=003087&color=fff`}
-                  alt=""
-                  className="avatar"
-                  width={32}
-                  height={32}
-                />
-                <span className="story-viewer-username">@{groupedStories[activeUserStoryIdx].user?.username}</span>
-                <span className="story-viewer-time">
-                  {new Date(groupedStories[activeUserStoryIdx].stories[activeStoryIdx].createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                {((groupedStories[activeUserStoryIdx].user?._id === user?._id) || (user?.role === 'admin')) && (
-                  <button 
-                    onClick={() => handleDeleteStory(groupedStories[activeUserStoryIdx].stories[activeStoryIdx]._id)} 
-                    style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '4px' }}
-                    title="Delete Story"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                )}
-                <button onClick={closeStoryViewer} className="story-viewer-close">
-                  <X size={20} />
-                </button>
-              </div>
-            </div>
-
-            {/* Media content */}
-            <div 
-              className="story-viewer-media"
-              onMouseDown={() => setIsPaused(true)}
-              onMouseUp={() => setIsPaused(false)}
-              onMouseLeave={() => setIsPaused(false)}
-              onTouchStart={() => setIsPaused(true)}
-              onTouchEnd={() => setIsPaused(false)}
-            >
-              {groupedStories[activeUserStoryIdx].stories[activeStoryIdx].mediaType === 'video' ? (
-                <video
-                  ref={storyVideoRef}
-                  src={getMediaUrl(groupedStories[activeUserStoryIdx].stories[activeStoryIdx].mediaUrl)}
-                  autoPlay
-                  playsInline
-                  controls={false}
-                  className="story-media-element"
-                />
-              ) : (
-                <img
-                  src={getMediaUrl(groupedStories[activeUserStoryIdx].stories[activeStoryIdx].mediaUrl)}
-                  alt=""
-                  className="story-media-element"
-                />
+                </div>
               )}
-            </div>
 
-            {/* Floating emojis layer */}
-            <div className="floating-emoji-container">
-              {floatingReactions.map(r => (
-                <span key={r.id} className="floating-emoji" style={{ left: r.left }}>
-                  {r.emoji}
-                </span>
-              ))}
-            </div>
+              {/* Center Story Container */}
+              <div className="story-viewer-container">
+                {/* Top progress indicators */}
+                <div className="story-progress-indicators">
+                  {currentGroup.stories.map((s, sIdx) => {
+                    let fillWidth = '0%';
+                    if (sIdx < activeStoryIdx) fillWidth = '100%';
+                    
+                    return (
+                      <div key={s._id} className="story-progress-bar">
+                        <div 
+                          className={`story-progress-fill ${sIdx === activeStoryIdx ? 'active' : ''}`}
+                          style={{ 
+                            width: sIdx === activeStoryIdx ? undefined : fillWidth,
+                            animationPlayState: (sIdx === activeStoryIdx && isPaused) ? 'paused' : 'running'
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
 
-            {/* Quick reaction tray */}
-            {groupedStories[activeUserStoryIdx].user?._id !== user?._id && (
-              <div className="story-viewer-footer">
-                <div className="story-reaction-tray">
-                  {['🔥', '❤️', '😂', '😮', '😢', '👏'].map(emoji => (
-                    <button
-                      key={emoji}
-                      onClick={() => handleSendStoryReaction(emoji, groupedStories[activeUserStoryIdx].user?._id)}
-                      className="reaction-emoji-btn"
-                      title={`Send ${emoji}`}
-                    >
-                      {emoji}
+                {/* Header info */}
+                <div className="story-viewer-header">
+                  <div className="story-viewer-author">
+                    <img
+                      src={getMediaUrl(currentGroup.user?.profilePhoto) || `https://ui-avatars.com/api/?name=${currentGroup.user?.username}&background=003087&color=fff`}
+                      alt=""
+                      className="avatar"
+                      width={32}
+                      height={32}
+                    />
+                    <span className="story-viewer-username">@{currentGroup.user?.username}</span>
+                    <span className="story-viewer-time">
+                      {new Date(currentStory.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {((currentGroup.user?._id === user?._id) || (user?.role === 'admin')) && (
+                      <button 
+                        onClick={() => handleDeleteStory(currentStory._id)} 
+                        style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '4px' }}
+                        title="Delete Story"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
+                    <button onClick={closeStoryViewer} className="story-viewer-close">
+                      <X size={20} />
                     </button>
+                  </div>
+                </div>
+
+                {/* Media content */}
+                <div 
+                  className="story-viewer-media"
+                  onMouseDown={() => setIsPaused(true)}
+                  onMouseUp={() => setIsPaused(false)}
+                  onMouseLeave={() => setIsPaused(false)}
+                  onTouchStart={() => setIsPaused(true)}
+                  onTouchEnd={() => setIsPaused(false)}
+                >
+                  {currentStory.mediaType === 'video' ? (
+                    <video
+                      ref={storyVideoRef}
+                      src={getMediaUrl(currentStory.mediaUrl)}
+                      autoPlay
+                      playsInline
+                      controls={false}
+                      className="story-media-element"
+                    />
+                  ) : (
+                    <img
+                      src={getMediaUrl(currentStory.mediaUrl)}
+                      alt=""
+                      className="story-media-element"
+                    />
+                  )}
+                </div>
+
+                {/* Floating emojis layer */}
+                <div className="floating-emoji-container">
+                  {floatingReactions.map(r => (
+                    <span key={r.id} className="floating-emoji" style={{ left: r.left }}>
+                      {r.emoji}
+                    </span>
                   ))}
                 </div>
+
+                {/* Floating quick reaction tray above reply box */}
+                {showReactionsTray && currentGroup.user?._id !== user?._id && (
+                  <div className="story-reactions-floating-panel">
+                    {['🔥', '❤️', '😂', '😮', '😢', '👏'].map(emoji => (
+                      <button
+                        key={emoji}
+                        onMouseDown={() => handleSendStoryReaction(emoji, currentGroup.user?._id)}
+                        className="reaction-emoji-btn"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* New Instagram Footer with reply input & like/plane icons */}
+                {currentGroup.user?._id !== user?._id && (
+                  <div className="story-viewer-footer-new">
+                    <div className="story-reply-box">
+                      <input
+                        type="text"
+                        value={storyReplyText}
+                        onChange={(e) => setStoryReplyText(e.target.value)}
+                        placeholder={`Reply to ${currentGroup.user?.username}...`}
+                        onFocus={() => { setIsPaused(true); setShowReactionsTray(true); }}
+                        onBlur={() => {
+                          setTimeout(() => {
+                            setIsPaused(false);
+                            setShowReactionsTray(false);
+                          }, 200);
+                        }}
+                        className="story-reply-input"
+                      />
+                    </div>
+                    {storyReplyText.trim() && (
+                      <button
+                        onClick={() => {
+                          handleSendStoryReply(storyReplyText, currentGroup.user?._id);
+                          setStoryReplyText('');
+                        }}
+                        className="story-footer-icon-btn"
+                        title="Send Message"
+                      >
+                        <Send size={20} />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleSendStoryReaction('❤️', currentGroup.user?._id)}
+                      className="story-footer-icon-btn"
+                      title="Like Story"
+                    >
+                      <Heart size={20} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Click navigation overlays */}
+                <div className="story-click-left" onClick={prevStory} />
+                <div className="story-click-right" onClick={nextStory} />
+
+                {/* Arrows for non-touch desktops */}
+                <button onClick={prevStory} className="story-arrow left-arrow">
+                  <ChevronLeft size={20} />
+                </button>
+                <button onClick={nextStory} className="story-arrow right-arrow">
+                  <ChevronRight size={20} />
+                </button>
               </div>
-            )}
 
-            {/* Click navigation overlays */}
-            <div className="story-click-left" onClick={prevStory} />
-            <div className="story-click-right" onClick={nextStory} />
+              {/* Right Preview Card */}
+              {activeUserStoryIdx < groupedStories.length - 1 && (
+                <div className="story-preview-card right-preview" onClick={goToNextUserStories}>
+                  <div className="preview-card-dimmer" />
+                  <img 
+                    src={getMediaUrl(groupedStories[activeUserStoryIdx + 1].stories[0].mediaUrl)} 
+                    alt="" 
+                    className="preview-media"
+                  />
+                  <div className="preview-avatar-wrapper">
+                    <img 
+                      src={getMediaUrl(groupedStories[activeUserStoryIdx + 1].user?.profilePhoto) || `https://ui-avatars.com/api/?name=${groupedStories[activeUserStoryIdx + 1].user?.username}&background=003087&color=fff`} 
+                      alt="" 
+                      className="avatar"
+                    />
+                    <span>@{groupedStories[activeUserStoryIdx + 1].user?.username}</span>
+                  </div>
+                </div>
+              )}
 
-            {/* Arrows for non-touch desktops */}
-            <button onClick={prevStory} className="story-arrow left-arrow">
-              <ChevronLeft size={20} />
-            </button>
-            <button onClick={nextStory} className="story-arrow right-arrow">
-              <ChevronRight size={20} />
-            </button>
+            </div>
           </div>
-        </div>
+        );
+      })()}
       )}
 
       {/* Camera Capture Modal */}
