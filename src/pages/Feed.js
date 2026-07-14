@@ -30,6 +30,36 @@ export default function Feed() {
   const [showStoryOpts, setShowStoryOpts]   = useState(false);
   const [isPaused, setIsPaused]             = useState(false);
 
+  const [floatingReactions, setFloatingReactions] = useState([]);
+
+  const triggerFloatingEmoji = (emoji) => {
+    const id = Date.now() + Math.random();
+    const left = Math.floor(Math.random() * 80) + 10;
+    const newReaction = { id, emoji, left: `${left}%` };
+    setFloatingReactions(prev => [...prev, newReaction]);
+    setTimeout(() => {
+      setFloatingReactions(prev => prev.filter(r => r.id !== id));
+    }, 1500);
+  };
+
+  const handleSendStoryReaction = async (emoji, recipientId) => {
+    if (recipientId === user?._id) {
+      toast.error("You can't react to your own story");
+      return;
+    }
+    try {
+      const { data: chat } = await api.post('/chats/find-or-create', { recipientId });
+      const form = new FormData();
+      form.append('chatId', chat._id);
+      form.append('text', `Reacted to your story: ${emoji}`);
+      await api.post('/chats/message', form);
+      toast.success(`Sent ${emoji} reaction!`);
+      triggerFloatingEmoji(emoji);
+    } catch (err) {
+      toast.error('Failed to send reaction');
+    }
+  };
+
   const storyTimerRef = useRef(null);
   const storyVideoRef = useRef(null);
 
@@ -514,6 +544,33 @@ export default function Feed() {
                 />
               )}
             </div>
+
+            {/* Floating emojis layer */}
+            <div className="floating-emoji-container">
+              {floatingReactions.map(r => (
+                <span key={r.id} className="floating-emoji" style={{ left: r.left }}>
+                  {r.emoji}
+                </span>
+              ))}
+            </div>
+
+            {/* Quick reaction tray */}
+            {groupedStories[activeUserStoryIdx].user?._id !== user?._id && (
+              <div className="story-viewer-footer">
+                <div className="story-reaction-tray">
+                  {['🔥', '❤️', '😂', '😮', '😢', '👏'].map(emoji => (
+                    <button
+                      key={emoji}
+                      onClick={() => handleSendStoryReaction(emoji, groupedStories[activeUserStoryIdx].user?._id)}
+                      className="reaction-emoji-btn"
+                      title={`Send ${emoji}`}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Click navigation overlays */}
             <div className="story-click-left" onClick={prevStory} />
