@@ -51,6 +51,41 @@ export default function Feed() {
     }
   };
 
+  const toggleLikeStory = async (storyId, recipientId) => {
+    if (recipientId === user?._id) {
+      toast.error("You can't like your own story");
+      return;
+    }
+    try {
+      const { data } = await api.put(`/stories/${storyId}/like`);
+      
+      setStories(stories.map(s => {
+        if (s._id === storyId) {
+          return { ...s, likes: data.likes };
+        }
+        return s;
+      }));
+      
+      setGroupedStories(prev => prev.map(group => {
+        return {
+          ...group,
+          stories: group.stories.map(s => {
+            if (s._id === storyId) {
+              return { ...s, likes: data.likes };
+            }
+            return s;
+          })
+        };
+      }));
+
+      if (data.liked) {
+        triggerFloatingEmoji('❤️');
+      }
+    } catch (err) {
+      toast.error('Failed to like story');
+    }
+  };
+
   const goToNextUserStories = () => {
     if (activeUserStoryIdx < groupedStories.length - 1) {
       const nextUserIdx = activeUserStoryIdx + 1;
@@ -505,6 +540,7 @@ export default function Feed() {
       {activeUserStoryIdx !== null && (() => {
         const currentGroup = groupedStories[activeUserStoryIdx];
         const currentStory = currentGroup.stories[activeStoryIdx];
+        const isStoryLiked = currentStory.likes?.includes(user?._id);
         return (
           <div className="story-viewer-overlay">
             <div className="story-viewer-layout-wrapper">
@@ -665,11 +701,12 @@ export default function Feed() {
                       </button>
                     )}
                     <button
-                      onClick={() => handleSendStoryReaction('❤️', currentGroup.user?._id)}
-                      className="story-footer-icon-btn"
+                      onClick={() => toggleLikeStory(currentStory._id, currentGroup.user?._id)}
+                      className={`story-footer-icon-btn ${isStoryLiked ? 'liked' : ''}`}
                       title="Like Story"
+                      style={{ color: isStoryLiked ? '#ff3b30' : '#fff' }}
                     >
-                      <Heart size={20} />
+                      <Heart size={20} fill={isStoryLiked ? '#ff3b30' : 'none'} color={isStoryLiked ? '#ff3b30' : 'currentColor'} />
                     </button>
                   </div>
                 )}
