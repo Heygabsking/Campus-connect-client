@@ -51,7 +51,7 @@ export default function Profile() {
         ]);
         setProfile(p);
         setPosts(ps);
-        setFollowing(p.followers?.includes(me?._id));
+        setFollowing(p.followers?.some(f => (f._id || f) === me?._id));
         setFollowerCount(p.followers?.length || 0);
         setEditForm({ username: p.username || '', bio: p.bio || '' });
       } catch { toast.error('Failed to load profile'); }
@@ -94,6 +94,7 @@ export default function Profile() {
       setFollowerCount(data.followerCount);
       const { data: updatedProfile } = await api.get(`/users/${id}`);
       setProfile(updatedProfile);
+      setFollowing(updatedProfile.followers?.some(f => (f._id || f) === me?._id));
     } catch { toast.error('Failed'); }
   };
 
