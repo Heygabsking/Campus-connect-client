@@ -23,6 +23,22 @@ export default function Profile() {
   const [updating, setUpdating] = useState(false);
   const [removePhotoFlag, setRemovePhotoFlag] = useState(false);
 
+  const [showUsersModal, setShowUsersModal] = useState(false);
+  const [usersModalTitle, setUsersModalTitle] = useState('');
+  const [usersList, setUsersList] = useState([]);
+
+  const handleShowUsersList = (type) => {
+    if (!profile) return;
+    if (type === 'followers') {
+      setUsersModalTitle('Followers');
+      setUsersList(profile.followers || []);
+    } else {
+      setUsersModalTitle('Following');
+      setUsersList(profile.following || []);
+    }
+    setShowUsersModal(true);
+  };
+
   const isMe = id === me?._id;
 
   useEffect(() => {
@@ -76,6 +92,8 @@ export default function Profile() {
       const { data } = await api.put(`/users/${id}/follow`);
       setFollowing(data.following);
       setFollowerCount(data.followerCount);
+      const { data: updatedProfile } = await api.get(`/users/${id}`);
+      setProfile(updatedProfile);
     } catch { toast.error('Failed'); }
   };
 
@@ -102,8 +120,8 @@ export default function Profile() {
             <p className="profile-bio">{profile.bio || 'No bio yet.'}</p>
             <div className="profile-stats">
               <span><strong>{posts.length}</strong> posts</span>
-              <span><strong>{followerCount}</strong> followers</span>
-              <span><strong>{profile.following?.length || 0}</strong> following</span>
+              <span onClick={() => handleShowUsersList('followers')} style={{ cursor: 'pointer' }}><strong>{followerCount}</strong> followers</span>
+              <span onClick={() => handleShowUsersList('following')} style={{ cursor: 'pointer' }}><strong>{profile.following?.length || 0}</strong> following</span>
             </div>
           </div>
           <div className="profile-cta">
@@ -193,6 +211,55 @@ export default function Profile() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {showUsersModal && (
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowUsersModal(false); }}>
+          <div className="modal-content card" style={{ maxWidth: '400px', maxHeight: '75vh', overflowY: 'auto' }}>
+            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid var(--border)', paddingBottom: '10px' }}>
+              <h3 style={{ margin: 0 }}>{usersModalTitle}</h3>
+              <button onClick={() => setShowUsersModal(false)} className="close-btn" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: 'var(--text)' }}>
+                &times;
+              </button>
+            </div>
+            
+            <div className="users-list-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {usersList.length === 0 ? (
+                <p style={{ textAlign: 'center', color: 'var(--muted)', fontSize: '14px', margin: '20px 0' }}>
+                  No {usersModalTitle.toLowerCase()} yet.
+                </p>
+              ) : (
+                usersList.map((u) => (
+                  <div 
+                    key={u._id} 
+                    onClick={() => {
+                      setShowUsersModal(false);
+                      navigate(`/profile/${u._id}`);
+                    }}
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '12px', 
+                      padding: '8px 10px', 
+                      borderRadius: '8px', 
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s'
+                    }}
+                    className="user-list-item"
+                  >
+                    <img
+                      src={getMediaUrl(u.profilePhoto) || `https://ui-avatars.com/api/?name=${u.username}&background=003087&color=fff`}
+                      alt="" 
+                      style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }}
+                    />
+                    <span style={{ fontWeight: '600', fontSize: '14px', color: 'var(--text)' }}>
+                      @{u.username}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       )}
