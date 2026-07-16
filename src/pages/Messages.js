@@ -7,25 +7,29 @@ import toast from 'react-hot-toast';
 import './Messages.css';
 
 export default function Messages() {
+  // Retrieves logged-in user credentials from the Auth Context
   const { user } = useAuth();
   
-  // Chats & Messages states
+  // States to hold the list of user chat rooms, active chat details, and messages history
   const [chats, setChats] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sendingMessage, setSendingMessage] = useState(false);
+  
+  // States to handle peer search bar queries and search users lists
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
 
-  // Voice Note Recorder states
+  // States to manage HTML5 web audio voice recording configurations and timers
   const [recording, setRecording] = useState(false);
   const [voiceBlob, setVoiceBlob] = useState(null);
   const [voiceSeconds, setVoiceSeconds] = useState(0);
   const [mediaFile, setMediaFile] = useState(null);
 
+  // References to handle microphone streams and message scrolling coordinates
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const recordingTimerRef = useRef(null);
@@ -34,11 +38,12 @@ export default function Messages() {
   const voiceSecondsRef = useRef(0);
   const streamRef = useRef(null);
 
+  // Fetch initial chats list when chat page finishes loading
   useEffect(() => {
     fetchChats();
   }, []);
 
-  // Toggle body class to hide bottom tab navigation on mobile when chat is active
+  // Controls UI layout to hide bottom navigation bars on mobile view when direct chat is focused
   useEffect(() => {
     if (activeChat) {
       document.body.classList.add('chat-active-body');
@@ -50,12 +55,14 @@ export default function Messages() {
     };
   }, [activeChat]);
 
+  // Re-fetches the conversation messages whenever user selects a different chat room
   useEffect(() => {
     if (activeChat) {
       fetchMessages(activeChat._id);
     }
   }, [activeChat]);
 
+  // Automatically scroll messages list view down when a new message is rendered
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
