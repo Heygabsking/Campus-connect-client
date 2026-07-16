@@ -143,6 +143,7 @@ export default function Lecturers() {
     });
   };
 
+  // Saves edited review comments and ratings back to database
   const handleSaveEditReview = async (e) => {
     e.preventDefault();
     try {
@@ -158,6 +159,7 @@ export default function Lecturers() {
     }
   };
 
+  // Triggers secure past paper deletion on uploader check
   const handleDeletePaper = async (paperId) => {
     if (!window.confirm("Are you sure you want to delete this past paper?")) return;
     try {
