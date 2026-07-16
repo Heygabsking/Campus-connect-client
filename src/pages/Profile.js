@@ -8,25 +8,35 @@ import { Download, UserPlus, UserCheck, Edit, LogOut } from 'lucide-react';
 import './Profile.css';
 
 export default function Profile() {
+  // useParams extracts the dynamic user ID parameter from the browser URL path
   const { id }                                = useParams();
+  // useAuth handles login state management and updates user profile global context
   const { user: me, updateUserState, logout } = useAuth();
+  // useNavigate handles navigation redirection programmatically
   const navigate                              = useNavigate();
+  // State hook storing the user profile record loaded from MongoDB
   const [profile, setProfile]         = useState(null);
   const [posts, setPosts]             = useState([]);
+  // State indicating if the current user follows this profile owner
   const [following, setFollowing]     = useState(false);
+  // Numerical count of total followers for this user profile
   const [followerCount, setFollowerCount] = useState(0);
+  // State variable controlling the displaying state of loader overlays
   const [loading, setLoading]         = useState(true);
 
+  // States to handle user profile edit drawer modal visibility
   const [showEdit, setShowEdit] = useState(false);
   const [editForm, setEditForm] = useState({ username: '', bio: '' });
   const [editPhoto, setEditPhoto] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [removePhotoFlag, setRemovePhotoFlag] = useState(false);
 
+  // States to control followers/following listing popup dialog visibility
   const [showUsersModal, setShowUsersModal] = useState(false);
   const [usersModalTitle, setUsersModalTitle] = useState('');
   const [usersList, setUsersList] = useState([]);
 
+  // Callback to populate and open followers/following modal views
   const handleShowUsersList = (type) => {
     if (!profile) return;
     if (type === 'followers') {
@@ -39,18 +49,22 @@ export default function Profile() {
     setShowUsersModal(true);
   };
 
+  // Boolean checking if the displayed profile is the logged-in user
   const isMe = id === me?._id;
 
+  // React useEffect hook to load user profile information on component load
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
       try {
+        // Promise.all runs backend REST API requests in parallel for optimization
         const [{ data: p }, { data: ps }] = await Promise.all([
           api.get(`/users/${id}`),
           api.get(`/posts/user/${id}`),
         ]);
         setProfile(p);
         setPosts(ps);
+        // Safely determine if user is following this profile owner
         setFollowing(p.followers?.some(f => (f._id || f) === me?._id));
         setFollowerCount(p.followers?.length || 0);
         setEditForm({ username: p.username || '', bio: p.bio || '' });
@@ -87,6 +101,7 @@ export default function Profile() {
     }
   };
 
+  // Callback to toggle following status in DB and refresh visual counters
   const toggleFollow = async () => {
     try {
       const { data } = await api.put(`/users/${id}/follow`);

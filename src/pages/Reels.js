@@ -25,27 +25,30 @@ export default function Reels() {
   const [commentsList, setCommentsList] = useState([]);
   const [commentText, setCommentText] = useState('');
 
+  // Local state tracking which reel ID is currently active/centered in viewport
   const [activeReelId, setActiveReelId] = useState(null);
 
-  // Video playback
+  // References mapping to HTML5 Video elements on page
   const videoRefs = useRef({});
 
+  // Loads reels on component mount
   useEffect(() => {
     fetchReels();
   }, []);
 
+  // IntersectionObserver to detect which reel card is centered on screen
   useEffect(() => {
     const observerOptions = {
       root: null,
       rootMargin: '0px',
-      threshold: 0.6
+      threshold: 0.6 // Card must be at least 60% visible to trigger active state
     };
 
     const observerCallback = (entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           const reelId = entry.target.dataset.reelId;
-          setActiveReelId(reelId);
+          setActiveReelId(reelId); // Set currently focused reel ID
         }
       });
     };
@@ -55,18 +58,19 @@ export default function Reels() {
     cards.forEach(card => observer.observe(card));
 
     return () => {
-      cards.forEach(card => observer.unobserve(card));
+      cards.forEach(card => observer.unobserve(card)); // Clean up observers on unmount
     };
   }, [reels]);
 
+  // Plays the active centered video and pauses all other videos in the feed
   useEffect(() => {
     Object.keys(videoRefs.current).forEach(id => {
       const video = videoRefs.current[id];
       if (video) {
         if (id === activeReelId) {
-          video.play().catch(() => {});
+          video.play().catch(() => {}); // Play video in viewport
         } else {
-          video.pause();
+          video.pause(); // Pause video outside viewport
         }
       }
     });
