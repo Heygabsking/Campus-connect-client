@@ -113,8 +113,30 @@ export default function Profile() {
     } catch { toast.error('Failed'); }
   };
 
-  const downloadReport = () => {
-    window.open(`http://localhost:5001/api/users/${id}/report`, '_blank');
+  // Downloads profile summary report PDF using authenticated Axios instance
+  const downloadReport = async () => {
+    try {
+      const { data } = await api.get(`/users/${id}/report`, {
+        responseType: 'blob' // Specify response as a binary data blob
+      });
+      
+      // Creates a temporary local browser object URL from the PDF file blob
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      
+      // Creates a temporary mock <a> tag to trigger downloading the PDF document
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `report-${profile.username}.pdf`);
+      document.body.appendChild(link);
+      link.click(); // Programmatic click download trigger
+      
+      // Garbage collect local browser resources
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error('Failed to download report');
+    }
   };
 
   const removePost = (pid) => setPosts(posts.filter(p => p._id !== pid));
